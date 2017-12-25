@@ -1,7 +1,7 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
 
-import Game from '../testgame.js';
+import Game from '../tictactoe.js';
 import DevTools from './devTools';
 
 const game = window.game = new Game();
