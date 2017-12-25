@@ -1,8 +1,11 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
 
-import game from '../game.js';
+import Game from '../testgame.js';
 import DevTools from './devTools';
+
+const game = window.game = new Game();
+game.start();
 
 const enhancer = __DEVELOPMENT__ ?
   compose(

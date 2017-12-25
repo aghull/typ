@@ -1,6 +1,33 @@
-.container {
-  border: 1px solid;
-  .header {
+.board {
+  width: 303px;
+  height: 303px;
+  .square {
+    width: 100px;
+    height: 100px;
+    border-bottom: 1px solid black;
+    border-right: 1px solid black;
+    float: left;
+    &:nth-child(7), &:nth-child(8), &:nth-child(9) {
+      border-bottom: none;
+    }
+    &:nth-child(3), &:nth-child(6), &:nth-child(9) {
+      border-right: none;
+    }
+  }
+  #X:after {
+    content: 'X';
+    color: red;
+    font-size: 100px;
+    margin: 0px 20px;
+    position: relative;
+    top: -10px;
+  }
+  #O:after {
+    content: 'O';
     color: blue;
+    font-size: 100px;
+    margin: 0px 12px;
+    position: relative;
+    top: -10px;
   }
 }

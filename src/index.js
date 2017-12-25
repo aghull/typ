@@ -3,7 +3,6 @@ import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 
 import store from './lib/store';
-import 'style!css!todomvc-app-css/index.css';
 import IndexPage from 'pages/IndexPage';
 
 if (__DEVELOPMENT__) {

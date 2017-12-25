@@ -49,7 +49,7 @@ const development = {
     }, {
       test: /\.scss/,
       exclude: [/node_module/],
-      loader: 'style!css?module&localIdentName=[path][name]---[local]---[hash:base64:5]!postcss'
+      loader: 'style!css?localIdentName=[path][name]---[local]---[hash:base64:5]!postcss'
     }, {
       test: /\.css/,
       exclude: [/node_module/],
@@ -117,7 +117,7 @@ const production = {
     }, {
       test: /\.scss/,
       exclude: [/node_module/],
-      loader: 'style!css?module&localIdentName=[path][name]---[local]---[hash:base64:5]!postcss'
+      loader: 'style!css!postcss'
     }, {
       test: /\.css/,
       exclude: [/node_module/],
