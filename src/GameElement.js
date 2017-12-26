@@ -9,8 +9,9 @@ export default class GameElement {
   }
 
   wrap(node) {
+    if (!(node instanceof Node)) return null;
     const element = gameElements.find(el => el && el.test(node));
-    if (!element) throw Error(`No wrapper for node ${node}`);
+    if (!element) throw Error(`No wrapper for node ${node.nodeName}`);
     return new element.className(node, this._doc);
   }
 
@@ -24,9 +25,9 @@ export default class GameElement {
                  reduce((attrs, attr) => Object.assign(attrs, { [prefix + attr.name]: attr.value }), {});
   }
 
-  attribute(name) {
-    return this._node.getAttribute(name);
-  }
+  attribute = name => this._node.getAttribute(name)
+
+  setAttribute = (name, value) => this._node.setAttribute(name, value);
 
   parent() {
     return this._node.parentNode && this.wrap(this._node.parentNode, this._doc);

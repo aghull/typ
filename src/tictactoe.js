@@ -9,17 +9,17 @@ export default class TicTacToe extends Game {
 
   victory() {
     return [
-      ['#TL', '#TC', '#TR'],
-      ['#ML', '#MC', '#MR'],
-      ['#BL', '#BC', '#BR'],
-      ['#TL', '#ML', '#BL'],
-      ['#TC', '#MC', '#BC'],
-      ['#TR', '#MR', '#BR'],
-      ['#TL', '#MC', '#BR'],
-      ['#TR', '#MC', '#BL'],
+      '#TL, #TC, #TR',
+      '#ML, #MC, #MR',
+      '#BL, #BC, #BR',
+      '#TL, #ML, #BL',
+      '#TC, #MC, #BC',
+      '#TR, #MR, #BR',
+      '#TL, #MC, #BR',
+      '#TR, #MC, #BL',
     ].map(row => {
-      if (this.board().count(row.map(square => `${square} #X`).join(',')) === 3) return 1;
-      if (this.board().count(row.map(square => `${square} #O`).join(',')) === 3) return 2;
+      if (this.board().spaces(row).filter(s => s.contains('#X')).length === 3) return 1;
+      if (this.board().spaces(row).filter(s => s.contains('#O')).length === 3) return 2;
       return false;
     }).find(r => r);
   }

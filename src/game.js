@@ -1,5 +1,7 @@
+// TODOS
 // serialize responsibility? how context for deser
 // replace react Component
+// syncing xml2json2xml
 // layout editor?
 // debug mode
 // multi-action control/disambiguation
@@ -102,7 +104,7 @@ export default class Game {
     const [className, json] = match.slice(1);
     const args = JSON.parse(json);
     if (className === 'GameElement') {
-      return this.doc().element(args.reduce((path, index) => `${path} > *:nth-child(${index})`, 'game'), null);
+      return this.doc().find(args.reduce((path, index) => `${path} > *:nth-child(${index})`, 'game'), null);
     }
     return args;
   }
@@ -115,6 +117,11 @@ export default class Game {
       }
       // return next choices for this action
       return Object.assign({}, state, { actions: result.map(choice => ({ type: action.type, args: action.args.concat(choice) })) });
+    }
+    switch (action.type) {
+      case 'debug':
+        return Object.assign(this._store(), { _debugOutput: eval(`this.board().${action.expr}`) }); // eslint-disable-line no-eval
+      default:
     }
     return state;
   }

@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import GameElement from '../GameElement.js';
+import xmlFormat from 'xml-formatter';
 
 import style from '../styles/main.scss';
 
 class IndexPage extends Component {
+  state = {}
 
   choice(action) {
     return action.args && action.args.length && action.args.slice(-1)[0];
@@ -34,7 +36,6 @@ class IndexPage extends Component {
         <div className={style.board}>
           {this.renderGameElement(this.props.board)}
         </div>
-        <pre>{JSON.stringify(this.props.state)}</pre>
         <div>Player {this.props.player}</div>
         <div>Winner {this.props.victory}</div>
         <div>
@@ -42,6 +43,13 @@ class IndexPage extends Component {
             action => <input key={this.description(action)} type="button" onClick={() => this.props.dispatch(action)} value={this.description(action)} />
           )}
         </div>
+        <pre>{JSON.stringify(this.props.state)}</pre>
+        <pre>{xmlFormat(this.props.board.outerHTML)}</pre>
+        <div>
+          board().<input value={this.state.debug || ''} type="text" onChange={e => this.setState({ debug: e.target.value })} />
+          <input type="submit" onClick={() => this.props.dispatch({ type: 'debug', expr: this.state.debug })} />
+        </div>
+        <pre>{String(this.props._debugOutput)}</pre>
       </div>
     );
   }

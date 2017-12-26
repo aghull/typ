@@ -4,59 +4,63 @@ import { times } from './utils.js';
 
 export default class Space extends GameElement {
 
-  find(q = '*') {
+  findNode(q = '*') {
     if (q instanceof Node) return q;
-    return this._node.querySelector(q);
+    return (this.boardNode() === this._node ? this._doc : this._node).querySelector(q);
   }
 
-  findAll(q = '*') {
+  findNodes(q = '*') {
     if (q instanceof NodeList) return q;
-    return this._node.querySelectorAll(q);
+    return (this.boardNode() === this._node ? this._doc : this._node).querySelectorAll(q);
   }
 
   count(q) {
-    return this.findAll(q).length;
+    return this.findNodes(q).length;
   }
 
-  element(q) {
+  contains(q) {
+    return !!this.findNode(q);
+  }
+
+  find(q) {
     if (q instanceof GameElement) return q;
-    return this.wrap(this.find(q));
+    return this.wrap(this.findNode(q));
   }
 
-  elements(q) {
+  findAll(q) {
     if (q instanceof Array) return q;
-    return Array.from(this.findAll(q)).map(node => this.wrap(node));
+    return Array.from(this.findNodes(q)).map(node => this.wrap(node));
   }
 
   space(q) {
+    if (q instanceof Node) return this.wrap(q);
     if (q instanceof Space) return q;
-    const node = this.find(q);
-    return GameElement.isSpaceNode(node) ? this.wrap(node) : null;
+    return this.spaces(q)[0];
   }
 
   spaces(q) {
     if (q instanceof Array) return q;
-    return Array.from(this.findAll(q)).
+    return Array.from(this.findNodes(q)).
                  filter(node => GameElement.isSpaceNode(node)).
                  map(node => this.wrap(node));
   }
 
   piece(q) {
+    if (q instanceof Node) return this.wrap(q);
     if (q instanceof Piece) return q;
-    const node = this.find(q);
-    return GameElement.isPieceNode(node) ? this.wrap(node) : null;
+    return this.pieces(q)[0];
   }
 
   pieces(q) {
     if (q instanceof Array) return q;
-    return Array.from(this.findAll(q)).
+    return Array.from(this.findNodes(q)).
                  filter(node => GameElement.isPieceNode(node)).
                  map(node => this.wrap(node));
   }
 
   move(pieces, to, num) {
     const space = this.board().space(to);
-    let movables = space ? this.pieces(pieces) : [];
+    let movables = space ? this.doc().pieces(pieces) : [];
     if (num !== undefined) movables = movables.slice(0, num);
     movables.forEach(piece => space._node.insertBefore(piece._node, null));
     return movables;

@@ -23,7 +23,8 @@
     "react-router-redux": "^4.0.0",
     "redux": "^3.3.1",
     "redux-devtools": "^3.1.1",
-    "redux-thunk": "^2.0.1"
+    "redux-thunk": "^2.0.1",
+    "xml-formatter": "^1.0.1"
   },
   "devDependencies": {
     "babel-core": "^6.7.0",
