@@ -18,7 +18,7 @@ const enhancer = __DEVELOPMENT__ ?
   );
 
 function configureStore(initialState) {
-  return createStore(game._reducer.bind(game), initialState, enhancer);
+  return createStore(game.reducer.bind(game), initialState, enhancer);
 }
 
 const store = configureStore();

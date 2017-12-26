@@ -1,11 +1,13 @@
 import Game from './game.js';
 
 export default class TestGame extends Game {
+  setup() {
+    this.numPlayers = 2;
+  }
+
   initialState() {
     return {
       board: { A: 1, B: 2, C: 3 },
-      player: 1,
-      players: 2,
     };
   }
 

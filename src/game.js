@@ -1,106 +1,97 @@
+// serialize responsibility? how context for deser
 // replace react Component
 // layout editor?
 // debug mode
 // multi-action control/disambiguation
 // reserved space/piece names?
 // error catching?
+// animation
+// orientation
 
-// action {type: method, choices: []} ser/deser choices
-// only inside action is deser
 import { times, fromJSOrdered } from './utils.js';
-import BoardElement from './BoardElement.js';
+import GameElement from './GameElement.js';
+import GameDocument from './GameDocument.js';
 
 export default class Game {
   constructor() {
-    this._syncedState = fromJSOrdered(this.initialState());
-    this.players = times(this._syncedState.get('players'));
-    this._syncedDoc = document.createElement('game');
-    this._addBoardElement('board', 'board', 'space', this._syncedDoc, {});
-    this._addBoardElement('pile', 'pile', 'space', this._syncedDoc, {});
+    this._state = fromJSOrdered(this.initialState());
+    this.setup();
   }
+
+  doc = () => this._scratchDoc || this._doc || (this._doc = new GameDocument());
+  board = () => this.doc().board()
+  pile = () => this.doc().pile()
+
+  initialState() {
+    return {};
+  }
+
+  setup() {}
 
   start() {
-    this.revertToSyncedState();
-    this.clearAction();
+    this.player = 1;
   }
 
-  clearAction = () => (this._action = { type: null, choices: [] })
-
-  revertToSyncedState() {
-    this._state = this._syncedState;
-    this._doc = this._syncedDoc.cloneNode(true);
-  }
-
-  syncState() {
-    this._syncedState = this._state;
-    this._syncedDoc = this._doc;
-    this.clearAction();
-  }
+  eachPlayer = fn => times(this.numPlayers).forEach(fn)
 
   victory() {
     return false;
   }
 
   _store = () => ({
-    board: this._doc.firstElementChild,
+    board: this.doc().boardNode(),
+    player: this.player,
     state: this._state.toJS(),
     actions: this.ask(),
     victory: this.victory(),
   });
 
-  // needed?
-  transform = fn => {
-    this._state = fn(this._state);
+  transform(fn) {
+    if (this._scratchState) {
+      this._scratchState = fn(this._scratchState);
+    } else {
+      this._state = fn(this._state);
+    }
+    return true;
+  }
+
+  endTurn() {
+    this.player = this.player % this.numPlayers + 1;
     return true;
   }
 
   choose = (choice, choices, fn) => (choices.find(c => this.serializeChoice(c) === this.serializeChoice(choice)) ? fn() : choices.map(c => this.serializeChoice(c)))
 
-  endTurn = () => this.transform(s => s.update('player', p => p % s.get('players') + 1))
-
-  player = () => this._state.get('player')
-
-  numPlayers = () => this._state.get('players')
-
-  try(action) {
-    const result = this._performMove(action);
-    this.revertToSyncedState();
+  _performMove(action) {
+    if (!this.moves[action.type]) return false;
+    const result = this.moves[action.type].apply(this, action.args.map(c => this.deserializeChoice(c)));
+    if (result !== true && result !== false && (typeof result !== 'object' || !result.map)) {
+      throw Error(`"${action.type}" returned invalid result "${result}"`);
+    }
     return result;
   }
 
-  submit(action) {
-    if (this._performMove(action) === true) {
-      this.syncState();
-    }
-  }
-
-  // remove action args
-  _performMove(action) {
-    if (!this.moves[action]) return false;
-    this.revertToSyncedState();
-    const result = this.moves[action].apply(this, this._action.choices.map(c => this.deserializeChoice(c)));
-    if (result !== true && result !== false && (typeof result !== 'object' || !result.map)) {
-      throw Error(`"${action}" returned invalid result "${result}"`);
-    }
+  try(action) {
+    this._scratchDoc = this.doc().clone();
+    this._scratchState = this._state;
+    const result = this._performMove(action);
+    this._scratchDoc = null;
+    this._scratchState = null;
     return result;
   }
 
   ask() {
-    const moves = this._action.type ? [this._action.type] : this.nextAction();
-    return moves.reduce((actions, type) => {
-      const result = this.try(type);
-      if (result === false) return actions;
-      return actions.concat(
-        result === true ?
-        { type, choices: this._action.choices } :
-        result.map(choice => ({ type, choices: this._action.choices.concat(choice) }))
-      );
+    const actions = this.nextAction().map(a => ({ type: a, args: [] }));
+    return actions.reduce((choices, a) => {
+      const result = this.try(a);
+      if (result === false) return choices;
+      return choices.concat(result === true ? a : result.map(choice => ({ type: a.type, args: [choice] })));
     }, []);
   }
 
   serializeChoice(value) {
-    if (value instanceof BoardElement) {
-      return `BoardElement(${JSON.stringify(value.branch())})`;
+    if (value instanceof GameElement) {
+      return `GameElement(${JSON.stringify(value.branch())})`;
     }
     return `literal(${JSON.stringify(value)})`;
   }
@@ -110,61 +101,21 @@ export default class Game {
     if (!match) throw Error(`deserializeChoice(${value}) failed`);
     const [className, json] = match.slice(1);
     const args = JSON.parse(json);
-    if (className === 'BoardElement') {
-      return this.find(args.reduce((path, index) => `${path} > *:nth-child(${index})`, 'game'), null);
+    if (className === 'GameElement') {
+      return this.doc().element(args.reduce((path, index) => `${path} > *:nth-child(${index})`, 'game'), null);
     }
     return args;
   }
 
-  find(q, on = 'board') {
-    if (q instanceof BoardElement) return q;
-    const node = this._doc.querySelector(`${on || ''} ${q}`);
-    return node ? new BoardElement(node) : null;
-  }
-
-  findAll(q, on = 'board') {
-    if (q instanceof Array) return q;
-    const nodes = this._doc.querySelectorAll(`${on || ''} ${q}`);
-    return Array.from(nodes).map(node => new BoardElement(node));
-  }
-
-  count(q, on = 'board') {
-    return this.findAll(q, on).length;
-  }
-
-  move(q, space, num = null, from = 'board', to = 'board') {
-    const destination = this.find(space, to);
-    let pieces = destination && destination.isSpace ? this.findAll(q, from).filter(el => el.isPiece) : [];
-    if (num !== null) pieces = pieces.slice(0, num);
-    pieces.forEach(el => destination._node.insertBefore(el._node, null));
-    return pieces;
-  }
-
-  place(q, space, num = 1) {
-    return this.move(q, space, num, 'pile', 'board');
-  }
-
-  remove(q, num = null) {
-    return this.move(q, '', num, 'board', 'pile');
-  }
-
-  addSpace = (name, type, attrs = {}) => this._addBoardElement(name, type, 'space', this._syncedDoc.children[0], attrs)
-
-  addPiece = (name, type, attrs = {}) => this._addBoardElement(name, type, 'piece', this._syncedDoc.children[1], attrs)
-
-  _addBoardElement(name, type, className, container, attrs) {
-    const el = document.createElement(type);
-    el.id = name;
-    el.className = className;
-    Object.keys(attrs).forEach(attr => el.setAttribute(attr, attrs[attr]));
-    container.appendChild(el);
-  }
-
-  _reducer(state = this._store(), action) {
+  reducer(state = this._store(), action) {
     if (action && this.moves[action.type]) {
-      this._action = action;
-      this.submit(this._action.type);
+      const result = this._performMove(action);
+      if (result === true) {
+        return this._store();
+      }
+      // return next choices for this action
+      return Object.assign({}, state, { actions: result.map(choice => ({ type: action.type, args: action.args.concat(choice) })) });
     }
-    return this._store();
+    return state;
   }
 }
