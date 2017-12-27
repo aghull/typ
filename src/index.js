@@ -2,19 +2,23 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 
-import store from './lib/store';
-import IndexPage from 'pages/IndexPage';
+import { createStore, applyMiddleware, compose } from 'redux';
+import thunk from 'redux-thunk';
+import DevTools from './lib/devTools';
+const enhancer = __DEVELOPMENT__ ? compose(applyMiddleware(thunk), DevTools.instrument()) : compose(applyMiddleware(thunk));
+
+import Game from './games/hearts/hearts';
+const game = window.game = new Game();
+game.start();
+
+const store = createStore(game.reducer.bind(game), undefined, enhancer);
 
 if (__DEVELOPMENT__) {
-  // babel export default...
-  let DevTools = require('./lib/devTools');
-  DevTools = DevTools.default;
-
   render(
     <Provider store={store}>
       <div>
         <DevTools />
-        <IndexPage />
+        <game.page />
       </div>
     </Provider>,
     document.getElementById('container')
@@ -22,7 +26,7 @@ if (__DEVELOPMENT__) {
 } else {
   render(
     <Provider store={store}>
-      <IndexPage />
+      <game.page />
     </Provider>,
     document.getElementById('container')
   );

@@ -1,11 +1,8 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
 import GameElement from '../GameElement.js';
 import xmlFormat from 'xml-formatter';
 
-import style from '../styles/main.scss';
-
-class IndexPage extends Component {
+export default class Page extends Component {
   state = {}
 
   choice(action) {
@@ -33,7 +30,7 @@ class IndexPage extends Component {
   render() {
     return (
       <div>
-        <div className={style.board}>
+        <div>
           {this.renderGameElement(this.props.board)}
         </div>
         <div>Player {this.props.player}</div>
@@ -54,5 +51,3 @@ class IndexPage extends Component {
     );
   }
 }
-
-export default connect(s => s)(IndexPage);

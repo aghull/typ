@@ -1,0 +1,17 @@
+.card {
+  width: 30px;
+  height: 40px;
+  border: 1px solid #999;
+  border-radius: 2px;
+  padding: 0;
+  text-align: center;
+  display: inline-block;
+  margin: 5px 1px;
+  vertical-align: top;
+  &[data-suit="H"], &[data-suit="D"] {
+    color: red;
+  }
+  &[data-suit="C"], &[data-suit="S"] {
+    color: black;
+  }
+}

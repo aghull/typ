@@ -1,5 +1,8 @@
 // TODOS
-// serialize responsibility? how context for deser
+// split game client code
+// game id routing
+// adjacency
+// hidden
 // replace react Component
 // syncing xml2json2xml
 // layout editor?
@@ -41,12 +44,18 @@ export default class Game {
   }
 
   _store = () => ({
-    board: this.doc().boardNode(),
+    board: this.playerView(),
     player: this.player,
     state: this._state.toJS(),
     actions: this.ask(),
     victory: this.victory(),
   });
+
+  playerView() {
+    const playerView = this.doc().clone();
+    playerView.findNodes(this.hidden()).forEach(n => n.replaceWith(document.createElement(n.nodeName)));
+    return playerView.boardNode();
+  }
 
   transform(fn) {
     if (this._scratchState) {

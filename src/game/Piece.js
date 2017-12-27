@@ -3,7 +3,7 @@ import GameElement from './GameElement.js';
 export default class Piece extends GameElement {
 
   move(to) {
-    return this.board().move(this, to);
+    return this.board().move([this], to);
   }
 
   remove() {

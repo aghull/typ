@@ -14,20 +14,17 @@
       border-right: none;
     }
   }
-  #X:after {
-    content: 'X';
-    color: red;
+  .mark {
     font-size: 100px;
-    margin: 0px 20px;
     position: relative;
     top: -10px;
-  }
-  #O:after {
-    content: 'O';
-    color: blue;
-    font-size: 100px;
-    margin: 0px 12px;
-    position: relative;
-    top: -10px;
+    &#X {
+      margin: 0px 20px;
+      color: red;
+    }
+    &#O {
+      margin: 0px 12px;
+      color: blue;
+    }
   }
 }
