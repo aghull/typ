@@ -15,8 +15,7 @@
     "react/prefer-stateless-function": 0,
     "react/prop-types": 0,
     "react/jsx-no-bind": 0,
-    "comma-dangle": 0,
-    "no-eval": 0
+    "comma-dangle": 0
   },
   "globals": {
     "__DEVELOPMENT__": true

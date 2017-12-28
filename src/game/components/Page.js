@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import GameElement from '../GameElement.js';
 import xmlFormat from 'xml-formatter';
 import classNames from 'classnames';
+import Piece from './Piece';
 
 import './styles.scss';
 
@@ -16,14 +17,23 @@ export default class Page extends Component {
   }
 
   select(action) {
-    if (action.multi && (action.multi.num === undefined || action.multi.num > 1 || (action.multi.max !== undefined && action.multi.max > 1))) {
+    if (this.checkMulti(action, (_, num, max) => num > 1 || max > 1)) {
       this.setState(state => {
         if (!state.action) {
           const newState = Object.assign(state, { action });
           newState.action.args.push([newState.action.args.pop()]);
           return newState;
         }
-        state.action.args[state.action.args.length - 1].push(this.choice(action));
+        const lastArg = state.action.args[state.action.args.length - 1];
+        const index = lastArg.indexOf(this.choice(action));
+        if (index > -1) {
+          lastArg.splice(index, 1);
+          if (lastArg.length === 0) {
+            return Object.assign(state, { action: undefined });
+          }
+        } else {
+          lastArg.push(this.choice(action));
+        }
         return state;
       });
     } else {
@@ -31,12 +41,17 @@ export default class Page extends Component {
     }
   }
 
+  checkMulti(action, fn) {
+    if (!action || !action.multi) return false;
+    const num = action.multi.num === undefined ? 1 : action.multi.num;
+    const max = action.multi.max === undefined ? action.multi.num : action.multi.max;
+    const answers = new Set(this.choice(action)).size;
+    return fn(answers, num, max);
+  }
+
   submissions() {
     if (this.state.action) {
-      const multi = this.state.action.multi;
-      const answerSet = new Set(this.choice(this.state.action));
-      return ((multi.num === undefined || answerSet.size >= multi.num) &&
-              answerSet.size <= (multi.max === undefined ? multi.num : multi.max)) ? [''] : [];
+      return this.checkMulti(this.state.action, (answers, num, max) => answers >= num && answers <= max) ? [''] : [];
     }
     return this.actions().filter(a => !a.args || !a.args.length);
   }
@@ -54,24 +69,25 @@ export default class Page extends Component {
     return `${action.type} ${this.choice(action) || ''}`.trim();
   }
 
+  component(element) {} // eslint-disable-line no-unused-vars
+
   renderGameElement(el) {
     const element = new GameElement(el); // pull out attr code?
     const choice = `GameElement(${JSON.stringify(element.branch())})`; // pull out serialize?
-    const action = this.actions().find(a => this.choice(a) === choice);
+    const selected = (this.choice(this.state.action) || []).indexOf(choice) > -1;
+    const action = (this.checkMulti(this.state.action, (answers, _, max) => answers === max) && !selected) ? null : this.actions().find(a => this.choice(a) === choice);
+    const Element = this.component(element.type) || Piece;
 
-    return React.DOM.div(
-      Object.assign(
-        {
-          id: element.name,
-          key: element.branch(),
-          className: classNames(element.type, {
-            selectable: action,
-            selected: (this.choice(this.state.action) || []).indexOf(choice) > -1
-          }),
-        },
-        element.attributes('data-'),
-        (action ? { onClick: () => this.select(action) } : {}),
-      ), GameElement.isPieceNode(el) ? element.name : Array.from(el.childNodes).map(node => this.renderGameElement(node))
+    return (
+      <Element
+        id={element.name}
+        key={element.branch()}
+        attributes={element.attributes()}
+        className={classNames(element.type, { selected, selectable: action })}
+        onClick={action && (() => this.select(action))}
+      >
+        {GameElement.isPieceNode(el) ? element.name : Array.from(el.childNodes).map(node => this.renderGameElement(node))}
+      </Element>
     );
   }
 
@@ -98,8 +114,10 @@ export default class Page extends Component {
           <div>Action: <pre>{JSON.stringify(this.state.action)}</pre></div>
           <div>Board: <pre>{xmlFormat(this.props.board.outerHTML)}</pre></div>
           <div>
-            board().<input value={this.state.debug || ''} type="text" onChange={e => this.setState({ debug: e.target.value })} />
-            <input type="submit" onClick={() => this.props.dispatch({ type: 'debug', expr: this.state.debug })} />
+            <form onSubmit={e => e.preventDefault() || this.props.dispatch({ type: 'debug', expr: this.state.debug })}>
+              board().<input value={this.state.debug || ''} type="text" onChange={e => this.setState({ debug: e.target.value })} size="80" />
+              <input type="submit" />
+            </form>
           </div>
           <pre>{String(this.props._debugOutput)}</pre>
         </div>

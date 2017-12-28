@@ -2,7 +2,7 @@ import GameElement from './GameElement.js';
 import Space from './Space.js';
 
 export default class GameDocument extends Space {
-  constructor(node) {
+  constructor(node, game) {
     let rootNode = node;
     if (!rootNode) {
       rootNode = document.createElement('game');
@@ -14,10 +14,10 @@ export default class GameDocument extends Space {
       rootNode.appendChild(board);
       rootNode.appendChild(pile);
     }
-    super(rootNode, rootNode);
+    super(rootNode, { game, doc: rootNode });
   }
 
-  clone = () => new GameDocument(this._doc.cloneNode(true))
+  clone = () => new GameDocument(this.doc.cloneNode(true), this.game)
 }
 
 GameElement.wrapNodeAs(0, GameDocument, node => !node.parentNode);

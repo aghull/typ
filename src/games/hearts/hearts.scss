@@ -8,10 +8,10 @@
   display: inline-block;
   margin: 5px 1px;
   vertical-align: top;
-  &[data-suit="H"], &[data-suit="D"] {
+  &.red {
     color: red;
   }
-  &[data-suit="C"], &[data-suit="S"] {
+  &.black {
     color: black;
   }
 }

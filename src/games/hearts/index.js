@@ -19,19 +19,19 @@ export default class Hearts extends Game {
   }
 
   hidden() {
-    return `hand:not([player="${this.player}"]) card, tricks card, discard card`;
+    return 'hand:not(:mine) card, tricks card, discard card';
   }
 
   moves = {
     deal: () => {
       this.board().clear();
       this.pile().shuffle();
-      this.eachPlayer(player => this.pile().move('card', `hand[player="${player}"]`, 13));
+      this.eachPlayer(player => this.pile().move('card', `hand[player=${player}]`, 13));
       return true;
     },
     play: cards =>
-      this.choose(cards, this.board().findAll(`hand[player="${this.player}"] card`), { num: 3 }, () => {
-        this.board().move(cards, `played[player="${this.player}"]`);
+      this.choose(cards, this.board().findAll('hand:mine card'), { num: 2, max: 4 }, () => {
+        this.board().move(cards, 'played:mine');
         return this.endTurn();
       })
   }

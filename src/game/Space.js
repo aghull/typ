@@ -4,14 +4,16 @@ import { times } from './utils.js';
 
 export default class Space extends GameElement {
 
+  _enhanceQuery = q => q.replace(':mine', `[player="${this.game.player}"]`).replace(/#(\d)/, '#\\3$1 ').replace(/([#=])(\d)/, '$1\\3$2 ');
+
   findNode(q = '*') {
     if (q instanceof Node) return q;
-    return (this.boardNode() === this._node ? this._doc : this._node).querySelector(q);
+    return (this.boardNode() === this.node ? this.doc : this.node).querySelector(this._enhanceQuery(q));
   }
 
   findNodes(q = '*') {
     if (q instanceof NodeList) return q;
-    return (this.boardNode() === this._node ? this._doc : this._node).querySelectorAll(q);
+    return (this.boardNode() === this.node ? this.doc : this.node).querySelectorAll(this._enhanceQuery(q));
   }
 
   count(q) {
@@ -62,7 +64,7 @@ export default class Space extends GameElement {
     const space = this.board().space(to);
     let movables = space ? this.pieces(pieces) : [];
     if (num !== undefined) movables = movables.slice(0, num);
-    movables.forEach(piece => space._node.insertBefore(piece._node, null));
+    movables.forEach(piece => space.node.insertBefore(piece.node, null));
     return movables;
   }
 
@@ -75,8 +77,8 @@ export default class Space extends GameElement {
   }
 
   shuffle() {
-    return times(this._node.childElementCount - 1).forEach(i =>
-      this._node.insertBefore(this._node.children[Math.floor(Math.random() * (this._node.childElementCount + 1 - i))], null)
+    return times(this.node.childElementCount - 1).forEach(i =>
+      this.node.insertBefore(this.node.children[Math.floor(Math.random() * (this.node.childElementCount + 1 - i))], null)
     );
   }
 
@@ -85,7 +87,7 @@ export default class Space extends GameElement {
   addSpaces = (num, name, type, attrs) => times(num).forEach(() => this.addSpace(name, type, attrs))
 
   addPiece(name, type, attrs) {
-    if (this._node === this.boardNode()) {
+    if (this.node === this.boardNode()) {
       return this.pile().addPiece(name, type, attrs);
     }
     return this.addGameElement(name, type, 'piece', attrs);
@@ -99,7 +101,7 @@ export default class Space extends GameElement {
     el.id = name.slice(1);
     el.className = className;
     Object.keys(attrs).forEach(attr => el.setAttribute(attr, attrs[attr]));
-    this._node.appendChild(el);
+    this.node.appendChild(el);
   }
 }
 
