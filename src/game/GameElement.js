@@ -23,10 +23,10 @@ export default class GameElement {
   attributes() {
     return Array.from(this.node.attributes).
                  filter(attr => attr.name !== 'class' && attr.name !== 'id').
-                 reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: attr.value }), {});
+                 reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: isNaN(attr.value) ? attr.value : +attr.value }), {});
   }
 
-  attribute = name => this.node.getAttribute(name)
+  attribute = name => this.attributes()[name]
 
   setAttribute = (name, value) => this.node.setAttribute(name, value);
 

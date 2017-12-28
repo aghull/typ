@@ -6,8 +6,8 @@ export default class Hearts extends Game {
     this.page = IndexPage;
     this.numPlayers = 4;
     ['S', 'C', 'D', 'H'].forEach(suit =>
-      ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'].forEach((number, value) =>
-        this.board().addPiece(`#${number}${suit}`, 'card', { suit, number, value: value + 2 })
+      ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'].forEach((number, i) =>
+        this.board().addPiece(`#${number}${suit}`, 'card', { suit, number, rank: i + 2 })
       )
     );
     this.eachPlayer(player => {
@@ -26,7 +26,12 @@ export default class Hearts extends Game {
     deal: () => {
       this.board().clear();
       this.pile().shuffle();
-      this.eachPlayer(player => this.pile().move('card', `hand[player=${player}]`, 13));
+      this.eachPlayer(player => {
+        this.pile().move('card', `hand[player=${player}]`, 13);
+        this.board().space(`hand[player=${player}]`).sort(
+          a => (a.attribute('suit') === 'H' ? '0' : a.attribute('suit')) + (30 - a.attribute('rank'))
+        );
+      });
       return true;
     },
     play: cards =>

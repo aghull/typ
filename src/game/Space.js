@@ -79,9 +79,17 @@ export default class Space extends GameElement {
   }
 
   shuffle() {
-    return times(this.node.childElementCount - 1).forEach(i =>
+    times(this.node.childElementCount - 1).forEach(i =>
       this.node.insertBefore(this.node.children[Math.floor(Math.random() * (this.node.childElementCount + 1 - i))], null)
     );
+  }
+
+  sort(fn = n => n.id) {
+    Array.from(this.node.children).
+          map(node => this.wrap(node)).
+          sort((a, b) => fn(a) > fn(b) && -1 || (fn(a) < fn(b) && 1 || 0)).
+          map(pair => pair.node).reverse().
+          forEach(i => this.node.insertBefore(i, null));
   }
 
   addSpace = (name, type, attrs) => this.addGameElement(name, type, 'space', attrs)
