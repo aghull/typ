@@ -1,17 +1,23 @@
 // TODOS
-// split game client code
 // game id routing
 // adjacency
-// hidden
 // replace react Component
 // syncing xml2json2xml
 // layout editor?
 // debug mode
 // multi-action control/disambiguation
 // reserved space/piece names?
-// error catching?
+// error catching? mark priv?
 // animation
 // orientation
+
+// reducer -> performMove = [c]
+// store -> questions(loop) -> performMove = [c]
+
+// action = { type, args }
+// choice = { answers, multi }
+// result = boolean or choice
+// question = action + choice
 
 import { times, fromJSOrdered } from './utils.js';
 import GameElement from './GameElement.js';
@@ -33,21 +39,26 @@ export default class Game {
 
   setup() {}
 
+  victory() {}
+
+  hidden() { return null; }
+
   start() {
     this.player = 1;
   }
 
-  eachPlayer = fn => times(this.numPlayers).forEach(fn)
-
-  victory() {
-    return false;
+  endTurn() {
+    this.player = this.player % this.numPlayers + 1;
+    return true;
   }
+
+  eachPlayer = fn => times(this.numPlayers).forEach(fn)
 
   _store = () => ({
     board: this.playerView(),
     player: this.player,
     state: this._state.toJS(),
-    actions: this.ask(),
+    questions: this.questions(),
     victory: this.victory(),
   });
 
@@ -66,50 +77,54 @@ export default class Game {
     return true;
   }
 
-  endTurn() {
-    this.player = this.player % this.numPlayers + 1;
-    return true;
+  // multi: num, max
+  // -> result
+  choose(answer, answerObjects, fn, multiFn) {
+    const answers = answerObjects.map(a => this.serialize(a));
+    if (multiFn) {
+      const multi = fn;
+      if (!answer) return { answers, multi };
+      const answerSet = (answer instanceof Array) ? new Set(answer.map(c => this.serialize(c)).filter(c => answers.indexOf(c) > -1)) : new Set();
+      return ((multi.num === undefined || answerSet.size >= multi.num) &&
+              answerSet.size <= (multi.max === undefined ? multi.num : multi.max)) ? multiFn() : false;
+    }
+    return answers.indexOf(this.serialize(answer)) > -1 ? fn() : { answers, multi: { num: 1 } };
   }
 
-  choose = (choice, choices, fn) => (choices.find(c => this.serializeChoice(c) === this.serializeChoice(choice)) ? fn() : choices.map(c => this.serializeChoice(c)))
-
-  _performMove(action) {
+  // action -> result
+  performMove(action) {
     if (!this.moves[action.type]) return false;
-    const result = this.moves[action.type].apply(this, action.args.map(c => this.deserializeChoice(c)));
-    if (result !== true && result !== false && (typeof result !== 'object' || !result.map)) {
+    const result = this.moves[action.type].apply(this, action.args.map(c => this.deserialize(c)));
+    if (typeof result !== 'boolean' && (typeof result !== 'object' || result.answers === undefined || result.multi === undefined)) {
       throw Error(`"${action.type}" returned invalid result "${result}"`);
     }
     return result;
   }
 
-  try(action) {
-    this._scratchDoc = this.doc().clone();
-    this._scratchState = this._state;
-    const result = this._performMove(action);
-    this._scratchDoc = null;
-    this._scratchState = null;
-    return result;
+  questions() {
+    const actions = this.nextAction().map(type => ({ type, args: [] }));
+    return actions.map(action => {
+      this._scratchDoc = this.doc().clone();
+      this._scratchState = this._state;
+      const result = this.performMove(action);
+      this._scratchDoc = null;
+      this._scratchState = null;
+      if (result === false) return null;
+      return result === true ? { action } : { action, choice: result };
+    });
   }
 
-  ask() {
-    const actions = this.nextAction().map(a => ({ type: a, args: [] }));
-    return actions.reduce((choices, a) => {
-      const result = this.try(a);
-      if (result === false) return choices;
-      return choices.concat(result === true ? a : result.map(choice => ({ type: a.type, args: [choice] })));
-    }, []);
-  }
-
-  serializeChoice(value) {
+  serialize(value) {
     if (value instanceof GameElement) {
       return `GameElement(${JSON.stringify(value.branch())})`;
     }
     return `literal(${JSON.stringify(value)})`;
   }
 
-  deserializeChoice(value) {
+  deserialize(value) {
+    if (value instanceof Array) return value.map(i => this.deserialize(i));
     const match = value.match(/^(\w*)\((.*)\)$/);
-    if (!match) throw Error(`deserializeChoice(${value}) failed`);
+    if (!match) throw Error(`deserialize(${value}) failed`);
     const [className, json] = match.slice(1);
     const args = JSON.parse(json);
     if (className === 'GameElement') {
@@ -120,12 +135,14 @@ export default class Game {
 
   reducer(state = this._store(), action) {
     if (action && this.moves[action.type]) {
-      const result = this._performMove(action);
+      const result = this.performMove(action);
       if (result === true) {
         return this._store();
       }
-      // return next choices for this action
-      return Object.assign({}, state, { actions: result.map(choice => ({ type: action.type, args: action.args.concat(choice) })) });
+      // return next question for this action
+      if (result !== false) {
+        return Object.assign({}, state, { questions: [{ action, choice: result }] });
+      }
     }
     switch (action.type) {
       case 'debug':

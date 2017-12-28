@@ -14,6 +14,7 @@
   "author": "lcj <emlcjnil@gmail.com>",
   "license": "BSD 3-clause",
   "dependencies": {
+    "classnames": "^2.2.5",
     "immutable": "^3.7.6",
     "jsdom": "^11.5.1",
     "react": "^15.0.0-rc.1",

@@ -1,4 +1,4 @@
-import Game from '../../game/game';
+import Game from '../../game';
 import IndexPage from './Page';
 
 export default class TicTacToe extends Game {

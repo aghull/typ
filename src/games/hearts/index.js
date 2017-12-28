@@ -1,4 +1,4 @@
-import Game from '../../game/game';
+import Game from '../../game';
 import IndexPage from './Page';
 
 export default class Hearts extends Game {
@@ -7,7 +7,7 @@ export default class Hearts extends Game {
     this.numPlayers = 4;
     ['S', 'C', 'D', 'H'].forEach(suit =>
       ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'].forEach((number, value) =>
-        this.board().addPiece(`#${number}${suit}`, 'card', { suit, number, value })
+        this.board().addPiece(`#${number}${suit}`, 'card', { suit, number, value: value + 2 })
       )
     );
     this.eachPlayer(player => {
@@ -18,7 +18,9 @@ export default class Hearts extends Game {
     });
   }
 
-  hidden = () => `hand:not([player="${this.player}"]) card, tricks card, discard card`
+  hidden() {
+    return `hand:not([player="${this.player}"]) card, tricks card, discard card`;
+  }
 
   moves = {
     deal: () => {
@@ -27,9 +29,9 @@ export default class Hearts extends Game {
       this.eachPlayer(player => this.pile().move('card', `hand[player="${player}"]`, 13));
       return true;
     },
-    play: card =>
-      this.choose(card, this.board().findAll(`hand[player="${this.player}"] card`), () => {
-        card.move(`played[player="${this.player}"]`);
+    play: cards =>
+      this.choose(cards, this.board().findAll(`hand[player="${this.player}"] card`), { num: 3 }, () => {
+        this.board().move(cards, `played[player="${this.player}"]`);
         return this.endTurn();
       })
   }

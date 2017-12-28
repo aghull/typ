@@ -1,8 +1,10 @@
-import Game from './game.js';
+import Game from '../../game';
+import IndexPage from './Page';
 
 export default class TestGame extends Game {
   setup() {
     this.numPlayers = 2;
+    this.page = IndexPage;
   }
 
   initialState() {
