@@ -76,6 +76,14 @@ export default class GameElement {
     return node && node.className === 'piece';
   }
 
+  serialize() {
+    return `GameElement(${JSON.stringify(this.branch())})`;
+  }
+
+  static deserialize(doc, args) {
+    return doc.find(args.reduce((path, index) => `${path} > *:nth-child(${index})`, 'game'), null);
+  }
+
   toString() {
     return `${this.type}#${this.name}`;
   }

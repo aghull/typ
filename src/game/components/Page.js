@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import GameElement from '../GameElement.js';
+import GameElement from '../GameElement';
 import xmlFormat from 'xml-formatter';
 import classNames from 'classnames';
 import Piece from './Piece';
+import { deserialize } from '../utils';
 
 import './styles.scss';
 
@@ -53,7 +54,7 @@ export default class Page extends Component {
     if (this.state.action) {
       return this.checkMulti(this.state.action, (answers, num, max) => answers >= num && answers <= max) ? [''] : [];
     }
-    return this.actions().filter(a => !a.args || !a.args.length);
+    return this.actions().filter(a => !a.args || !a.args.length || this.choice(a).match(/^literal\(/));
   }
 
   submit(action) {
@@ -66,14 +67,14 @@ export default class Page extends Component {
   }
 
   description(action) {
-    return `${action.type} ${this.choice(action) || ''}`.trim();
+    return `${action.type} ${this.choice(action) ? deserialize(this.choice(action)) : ''}`.trim();
   }
 
   component(element) {} // eslint-disable-line no-unused-vars
 
   renderGameElement(el) {
     const element = new GameElement(el); // pull out attr code?
-    const choice = `GameElement(${JSON.stringify(element.branch())})`; // pull out serialize?
+    const choice = element.serialize();
     const selected = (this.choice(this.state.action) || []).indexOf(choice) > -1;
     const action = (this.checkMulti(this.state.action, (answers, _, max) => answers === max) && !selected) ? null : this.actions().find(a => this.choice(a) === choice);
     const Element = this.component(element.type) || Piece;
@@ -101,7 +102,7 @@ export default class Page extends Component {
         <div>Winner {this.props.victory}</div>
         <div>
           {this.submissions().map(action =>
-            <input key={action} type="button" onClick={() => this.submit(action)} value={action ? action.type : 'Done'} />
+            <input key={this.description(action)} type="button" onClick={() => this.submit(action)} value={action ? this.description(action) : 'Done'} />
           )}
         </div>
         <div style={{ border: '1px solid #666', padding: '6px', background: '#ccc' }}>

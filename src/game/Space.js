@@ -7,11 +7,13 @@ export default class Space extends GameElement {
   _enhanceQuery = q => q.replace(':mine', `[player="${this.game.player}"]`).replace(/#(\d)/, '#\\3$1 ').replace(/([#=])(\d)/, '$1\\3$2 ');
 
   findNode(q = '*') {
+    if (q === null) return null;
     if (q instanceof Node) return q;
     return (this.boardNode() === this.node ? this.doc : this.node).querySelector(this._enhanceQuery(q));
   }
 
   findNodes(q = '*') {
+    if (q === null) return [];
     if (q instanceof NodeList) return q;
     return (this.boardNode() === this.node ? this.doc : this.node).querySelectorAll(this._enhanceQuery(q));
   }

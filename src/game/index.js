@@ -15,7 +15,7 @@
 // result = boolean or choice
 // question = action + choice
 
-import { times, fromJSOrdered } from './utils.js';
+import { times, fromJSOrdered, serialize, deserialize } from './utils.js';
 import GameElement from './GameElement.js';
 import GameDocument from './GameDocument.js';
 
@@ -76,21 +76,23 @@ export default class Game {
   // multi: num, max
   // try partial action -> result
   choose(answer, answerObjects, fn, multiFn) {
-    const answers = answerObjects.map(a => this._serialize(a));
+    const answers = answerObjects.map(serialize);
     if (multiFn) {
       const multi = fn;
       if (!answer) return { answers, multi };
-      const answerSet = (answer instanceof Array) ? new Set(answer.map(c => this._serialize(c)).filter(c => answers.indexOf(c) > -1)) : new Set();
+      const answerSet = (answer instanceof Array) ? new Set(answer.map(serialize).filter(c => answers.indexOf(c) > -1)) : new Set();
       return ((multi.num === undefined || answerSet.size >= multi.num) &&
               answerSet.size <= (multi.max === undefined ? multi.num : multi.max)) ? multiFn() : false;
     }
-    return answers.indexOf(this._serialize(answer)) > -1 ? fn() : { answers, multi: { num: 1 } };
+    return answers.indexOf(serialize(answer)) > -1 ? fn() : { answers, multi: { num: 1 } };
   }
 
   // action -> result
   _performMove(action) {
     if (!this.moves[action.type]) return false;
-    const result = this.moves[action.type].apply(this, action.args.map(c => this._deserialize(c)));
+    const result = this.moves[action.type].apply(this, action.args.map(c =>
+      deserialize(c, { GameElement: GameElement.deserialize.bind(this, this.doc()) })
+    ));
     if (typeof result !== 'boolean' && (typeof result !== 'object' || result.answers === undefined || result.multi === undefined)) {
       throw Error(`"${action.type}" returned invalid result "${result}"`);
     }
@@ -109,25 +111,6 @@ export default class Game {
       if (result === false) return null;
       return result === true ? { action } : { action, choice: result };
     });
-  }
-
-  _serialize(value) {
-    if (value instanceof GameElement) {
-      return `GameElement(${JSON.stringify(value.branch())})`;
-    }
-    return `literal(${JSON.stringify(value)})`;
-  }
-
-  _deserialize(value) {
-    if (value instanceof Array) return value.map(i => this._deserialize(i));
-    const match = value.match(/^(\w*)\((.*)\)$/);
-    if (!match) throw Error(`deserialize(${value}) failed`);
-    const [className, json] = match.slice(1);
-    const args = JSON.parse(json);
-    if (className === 'GameElement') {
-      return this.doc().find(args.reduce((path, index) => `${path} > *:nth-child(${index})`, 'game'), null);
-    }
-    return args;
   }
 
   reducer(state = this._store(), action) {
