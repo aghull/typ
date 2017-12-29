@@ -32,6 +32,7 @@ export default class Space extends GameElement {
   }
 
   findAll(q) {
+    if (q instanceof GameElement) return [q];
     if (q instanceof Array) return q;
     return Array.from(this.findNodes(q)).map(node => this.wrap(node));
   }
@@ -44,9 +45,7 @@ export default class Space extends GameElement {
 
   spaces(q) {
     if (q instanceof Array) return q;
-    return Array.from(this.findNodes(q)).
-                 filter(node => GameElement.isSpaceNode(node)).
-                 map(node => this.wrap(node));
+    return this.findAll(q).filter(el => el instanceof Space);
   }
 
   piece(q) {
@@ -57,9 +56,7 @@ export default class Space extends GameElement {
 
   pieces(q) {
     if (q instanceof Array) return q;
-    return Array.from(this.findNodes(q)).
-                 filter(node => GameElement.isPieceNode(node)).
-                 map(node => this.wrap(node));
+    return this.findAll(q).filter(el => el instanceof Piece);
   }
 
   move(pieces, to, num) {

@@ -26,6 +26,7 @@ export default class Game {
   }
 
   doc = () => this._scratchDoc || this._doc || (this._doc = new GameDocument(null, this));
+  state = () => (this._scratchState || this._state).toJS();
   board = () => this.doc().board()
   pile = () => this.doc().pile()
 
@@ -60,10 +61,10 @@ export default class Game {
   }
 
   _store = () => ({
+    questions: this._questions(),
     board: this._playerView(),
     player: this.player,
     state: this._state.toJS(),
-    questions: this._questions(),
     victory: this.victory(),
   });
 
