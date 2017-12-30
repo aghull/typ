@@ -23,7 +23,7 @@ export default class Hearts extends Game {
   }
 
   hidden() {
-    return 'hand:not(:mine) card, tricks card, pass card';
+    return 'hand:not(.mine) card, tricks card, pass card';
   }
 
   victory() {
@@ -36,20 +36,21 @@ export default class Hearts extends Game {
       if (this.board().count('hand card') === 52) {
         plays = this.board().findAll('#2C');
       } else if (this.state().led) {
-        plays = this.board().findAll(`hand:mine card[suit=${this.state().led}]`);
+        plays = this.board().findAll(`hand.mine card[suit=${this.state().led}]`);
       } else if (!this.board().count('tricks card[suit=H]')) { // hearts not broken
-        plays = this.board().findAll('hand:mine card:not([suit=H])');
+        plays = this.board().findAll('hand.mine card:not([suit=H])');
       }
-      if (plays.length === 0) plays = this.board().findAll('hand:mine card');
+      if (plays.length === 0) plays = this.board().findAll('hand.mine card');
       return this.choose(card, plays, () => {
-        card.move('played:mine');
+        card.move('played.mine');
         this.transform(state => state.update('led', led => led || card.attribute('suit')));
         return this.endTurn();
       });
     },
+
     pass: cards =>
-      this.choose(cards, this.board().findAll('hand:mine card'), { num: 3 }, () => {
-        this.board().move(cards, 'pass:mine');
+      this.choose(cards, this.board().findAll('hand.mine card'), { num: 3 }, () => {
+        this.board().move(cards, 'pass.mine');
         return this.endTurn();
       })
   }
@@ -60,42 +61,41 @@ export default class Hearts extends Game {
     )
   );
 
-
   nextAction() {
     const played = this.board().findAll('played card');
-    if (played.length === 4) {
-      const winningNumber = Math.max.apply(Math,
-                                           played.filter(c => c.attribute('suit') === this.state().led).
-                                                  map(c => c.attribute('rank'))
-      );
-      const winningPlayer = this.board().find(`played card[rank=${winningNumber}]`).parent().attribute('player');
-      this.board().move('played card', `tricks[player=${winningPlayer}]`);
-      this.player = winningPlayer;
+
+    if (played.length === 4) { // score the trick
+      this.player = played.filter(p => p.attribute('suit') === this.state().led).
+                           sort((a, b) => b.attribute('rank') - a.attribute('rank'))[0].
+                           parent().player();
+      this.board().move(played, 'tricks.mine');
       this.transform(state => state.delete('led'));
     }
-    if (this.board().count('tricks card') === 52) {
-      let score = [];
-      this.eachPlayer(
-        player => (score[player - 1] = this.board().count(`tricks[player=${player}] card[suit=H]`) + (this.board().count(`tricks[player=${player}] #QS`) ? 13 : 0))
+
+    if (this.board().count('tricks card') === 52) { // score the deal
+      let score = this.state().score;
+      this.board().findAll('[suit=H], #QS').forEach(card =>
+        (score[card.parent().player() - 1] += card.id === 'QS' ? 13 : 1)
       );
-      if (Math.max.apply(Math, score) === 26) score = score.map(s => (s === 26 ? 0 : 26));
-      this.transform(state => state.update('score', s => s.map((points, player) => points + score[player])));
+      if (score.find(s => s === 26)) score = score.map(s => (s === 26 ? 0 : 26));
+      this.transform(state => state.set('score', score));
       this.board().clear();
     }
-    if (!this.board().count('hand card')) {
+
+    if (!this.board().count('hand card')) { // need to deal
       this.pile().shuffle();
       this.eachPlayer(player => this.pile().move('card', `hand[player=${player}]`, 13));
       this.sortCards();
     }
-    if (this.board().count('pass card') === 12) {
-      this.eachPlayer(
-        player => this.board().move(`pass[player=${player}] card`, `hand[player=${player % 4 + 1}]`)
+
+    if (this.board().count('pass card') === 12) { // all cards passed
+      this.eachPlayer(player =>
+        this.board().move(`pass[player=${player}] card`, `hand[player=${player % 4 + 1}]`)
       );
       this.sortCards();
-      this.player = this.board().find('#2C').parent().attribute('player');
-    } else if (this.board().count('hand card') === 52 || this.board().count('pass card')) {
-      return ['pass'];
-    }
+      this.player = this.board().find('#2C').parent().player();
+    } else if (this.board().count('hand card') === 52 || this.board().count('pass card')) return ['pass'];
+
     return ['play'];
   }
 }

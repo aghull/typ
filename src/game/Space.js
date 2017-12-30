@@ -4,7 +4,7 @@ import { times } from './utils.js';
 
 export default class Space extends GameElement {
 
-  _enhanceQuery = q => q.replace(':mine', `[player="${this.game.player}"]`).replace(/#(\d)/, '#\\3$1 ').replace(/([#=])(\d)/, '$1\\3$2 ');
+  _enhanceQuery = q => q.replace('.mine', `[player="${this.game.player}"]`).replace(/#(\d)/, '#\\3$1 ').replace(/([#=])(\d)/, '$1\\3$2 ');
 
   findNode(q = '*') {
     if (q === null) return null;

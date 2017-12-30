@@ -5,7 +5,7 @@ export default class GameElement {
     this.node = node;
     this.doc = caller.doc;
     this.game = caller.game;
-    this.name = node.id;
+    this.id = node.id;
     this.type = node.nodeName.toLowerCase();
   }
 
@@ -29,6 +29,8 @@ export default class GameElement {
   attribute = name => this.attributes()[name]
 
   setAttribute = (name, value) => this.node.setAttribute(name, value);
+
+  player = () => this.attribute('player');
 
   parent() {
     return this.node.parentNode && this.wrap(this.node.parentNode);
@@ -85,6 +87,6 @@ export default class GameElement {
   }
 
   toString() {
-    return `${this.type}#${this.name}`;
+    return `${this.type}#${this.id}`;
   }
 }

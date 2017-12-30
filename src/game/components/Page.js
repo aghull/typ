@@ -81,13 +81,13 @@ export default class Page extends Component {
 
     return (
       <Element
-        id={element.name}
+        id={element.id}
         key={element.branch()}
         attributes={element.attributes()}
-        className={classNames(element.type, { selected, selectable: action })}
+        className={classNames(element.type, { selected, selectable: action, mine: element.player() === this.props.player })}
         onClick={action && (() => this.select(action))}
       >
-        {GameElement.isPieceNode(el) ? element.name : Array.from(el.childNodes).map(node => this.renderGameElement(node))}
+        {GameElement.isPieceNode(el) ? element.id : Array.from(el.childNodes).map(node => this.renderGameElement(node))}
       </Element>
     );
   }
