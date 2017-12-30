@@ -26,11 +26,11 @@ export default class GameElement {
                  reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: isNaN(attr.value) ? attr.value : +attr.value }), {});
   }
 
-  attribute = name => this.attributes()[name]
+  get = name => this.attributes()[name]
 
-  setAttribute = (name, value) => this.node.setAttribute(name, value);
+  set = (name, value) => this.node.setAttribute(name, value);
 
-  player = () => this.attribute('player');
+  player = () => this.get('player');
 
   parent() {
     return this.node.parentNode && this.wrap(this.node.parentNode);

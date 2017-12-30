@@ -43,7 +43,7 @@ export default class Hearts extends Game {
       if (plays.length === 0) plays = this.board().findAll('hand.mine card');
       return this.choose(card, plays, () => {
         card.move('played.mine');
-        this.transform(state => state.update('led', led => led || card.attribute('suit')));
+        this.transform(state => state.update('led', led => led || card.get('suit')));
         return this.endTurn();
       });
     },
@@ -57,7 +57,7 @@ export default class Hearts extends Game {
 
   sortCards = () => this.eachPlayer(player =>
     this.board().space(`hand[player=${player}]`).sort(a =>
-      (a.attribute('suit') === 'H' ? '0' : a.attribute('suit')) + (30 - a.attribute('rank'))
+      (a.get('suit') === 'H' ? '0' : a.get('suit')) + (30 - a.get('rank'))
     )
   );
 
@@ -65,8 +65,8 @@ export default class Hearts extends Game {
     const played = this.board().findAll('played card');
 
     if (played.length === 4) { // score the trick
-      this.player = played.filter(p => p.attribute('suit') === this.state().led).
-                           sort((a, b) => b.attribute('rank') - a.attribute('rank'))[0].
+      this.player = played.filter(p => p.get('suit') === this.state().led).
+                           sort((a, b) => b.get('rank') - a.get('rank'))[0].
                            parent().player();
       this.board().move(played, 'tricks.mine');
       this.transform(state => state.delete('led'));
