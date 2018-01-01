@@ -17,7 +17,7 @@ export default class TestGame extends Game {
     increment: (index, by) =>
       this.choose(index, ['A', 'B', 'C'], () =>
         this.choose(by, [1, 2, 3], () => {
-          this.transform(s => s.updateIn(['board', index], a => a + by));
+          this.update('board', s => s.update(index, a => a + by));
           return this.endTurn();
         })
       )

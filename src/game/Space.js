@@ -18,6 +18,10 @@ export default class Space extends GameElement {
     return (this.boardNode() === this.node ? this.doc : this.node).querySelectorAll(this._enhanceQuery(q));
   }
 
+  empty(q) {
+    return !this.find(q) || this.find(q).node.children.length === 0;
+  }
+
   count(q) {
     return this.findNodes(q).length;
   }
@@ -61,6 +65,7 @@ export default class Space extends GameElement {
 
   move(pieces, to, num) {
     const space = this.board().space(to);
+    if (!space) throw new Error(`No space found "${to}"`);
     let movables = space ? this.pieces(pieces) : [];
     if (num !== undefined) movables = movables.slice(0, num);
     movables.forEach(piece => space.node.insertBefore(piece.node, null));
@@ -81,12 +86,24 @@ export default class Space extends GameElement {
     );
   }
 
-  sort(fn = n => n.id) {
-    Array.from(this.node.children).
-          map(node => this.wrap(node)).
-          sort((a, b) => fn(a) > fn(b) && -1 || (fn(a) < fn(b) && 1 || 0)).
-          map(pair => pair.node).reverse().
-          forEach(i => this.node.insertBefore(i, null));
+  lowest(q, fn) {
+    return this._sort(this.findAll(q), fn)[0];
+  }
+
+  highest(q, fn) {
+    const sorted = this._sort(this.findAll(q), fn);
+    return sorted[sorted.length - 1];
+  }
+
+  sort(fn) {
+    this._sort(Array.from(this.node.children).map(node => this.wrap(node)), fn).
+         map(pair => pair.node).
+         forEach(i => this.node.insertBefore(i, null));
+  }
+
+  _sort = (set, fn = n => n.id) => {
+    const comp = typeof fn === 'function' ? fn : el => el.get(fn);
+    return set.sort((a, b) => comp(a) > comp(b) && 1 || (comp(a) < comp(b) && -1 || 0));
   }
 
   addSpace = (name, type, attrs) => this.addGameElement(name, type, 'space', attrs)

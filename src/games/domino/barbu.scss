@@ -1,0 +1,44 @@
+.card {
+  width: 30px;
+  height: 40px;
+  border: 1px solid #999;
+  border-radius: 2px;
+  background: white;
+  padding: 0;
+  text-align: center;
+  display: inline-block;
+  margin: 5px 1px;
+  vertical-align: top;
+  &.red {
+    color: red;
+  }
+  &.black {
+    color: black;
+  }
+  &.facedown {
+    background: #99f;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,.3) 4px, rgba(0,0,0,.3) 8px);
+  }
+}
+.down .card, .up .card, .tricks .card {
+  margin-right: -31px;
+}
+.tricks .card:nth-child(4n) {
+  margin-right: 0;
+}
+.starting, .up, .down {
+  float: left;
+}
+.hand, .up {
+  clear: left;
+}
+.down {
+  clear: right;
+}
+.up .card:last-child, .down .card:last-child {
+  margin-right: 0;
+}
+.starting .card {
+  margin-right: 10px;
+  margin-left: 10px;
+}

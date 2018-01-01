@@ -1,4 +1,5 @@
 // TODOS
+// highest/lowest
 // game id routing
 // adjacency
 // syncing xml2json2xml
@@ -21,14 +22,23 @@ import GameDocument from './GameDocument.js';
 
 export default class Game {
   constructor() {
-    this._state = fromJSOrdered(this.initialState());
+    this.state = fromJSOrdered(this.initialState());
+    this.doc = new GameDocument(null, this);
+    this.board = this.doc.board();
+    this.pile = this.doc.pile();
     this.setup();
   }
 
-  doc = () => this._scratchDoc || this._doc || (this._doc = new GameDocument(null, this));
-  state = () => (this._scratchState || this._state).toJS();
-  board = () => this.doc().board()
-  pile = () => this.doc().pile()
+  state = () => this.state.toJS()
+  get = key => {
+    const value = this.state.get(key);
+    return value && value.toJS ? value.toJS() : value;
+  }
+  set = (key, value) => (this.state = this.state.set(key, fromJSOrdered(value))) && true
+  setIn = (keyPath, value) => (this.state = this.state.setIn(keyPath, fromJSOrdered(value))) && true
+  update = (...args) => (this.state = this.state.update.apply(this.state, args)) && true
+  updateIn = (...args) => (this.state = this.state.updateIn.apply(this.state, args)) && true
+  delete = key => (this.state = this.state.delete(key)) && true
 
   initialState() {
     return {};
@@ -41,35 +51,28 @@ export default class Game {
   hidden() { return null; }
 
   start() {
-    this.player = 1;
+    this.player = 0;
+    this.players = times(this.numPlayers).map(p => `Player ${p + 1}`);
   }
 
   endTurn() {
-    this.player = this.player % this.numPlayers + 1;
+    this.player = (this.player + 1) % this.numPlayers;
     return true;
   }
 
   eachPlayer = fn => times(this.numPlayers).forEach(fn)
-
-  transform(fn) {
-    if (this._scratchState) {
-      this._scratchState = fn(this._scratchState);
-    } else {
-      this._state = fn(this._state);
-    }
-    return true;
-  }
+  me = () => this.players[this.player];
 
   _store = () => ({
     questions: this._questions(),
     board: this._playerView(),
     player: this.player,
-    state: this._state.toJS(),
+    state: this.state.toJS(),
     victory: this.victory(),
   });
 
   _playerView() {
-    const playerView = this.doc().clone();
+    const playerView = this.doc.clone();
     playerView.findNodes(this.hidden()).forEach(n => n.replaceWith(document.createElement(n.nodeName)));
     return playerView.boardNode();
   }
@@ -92,7 +95,7 @@ export default class Game {
   _performMove(action) {
     if (!this.moves[action.type]) return false;
     const result = this.moves[action.type].apply(this, action.args.map(c =>
-      deserialize(c, { GameElement: GameElement.deserialize.bind(this, this.doc()) })
+      deserialize(c, { GameElement: GameElement.deserialize.bind(this, this.doc) })
     ));
     if (typeof result !== 'boolean' && (typeof result !== 'object' || result.answers === undefined || result.multi === undefined)) {
       throw Error(`"${action.type}" returned invalid result "${result}"`);
@@ -104,11 +107,14 @@ export default class Game {
   _questions() {
     const actions = this.nextAction().map(type => ({ type, args: [] }));
     return actions.map(action => {
-      this._scratchDoc = this.doc().clone();
-      this._scratchState = this._state;
+      this._doc = this.doc;
+      this.doc = this.doc.clone();
+      this._state = this.state;
+      this._player = this.player;
       const result = this._performMove(action);
-      this._scratchDoc = null;
-      this._scratchState = null;
+      this.doc = this._doc;
+      this.state = this._state;
+      this.player = this._player;
       if (result === false) return null;
       return result === true ? { action } : { action, choice: result };
     });

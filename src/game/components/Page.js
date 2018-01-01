@@ -18,28 +18,27 @@ export default class Page extends Component {
   }
 
   select(action) {
-    if (this.checkMulti(action, (_, num, max) => num > 1 || max > 1)) {
+    if (this.checkMulti(action, (_, num, max) => num !== 1 || max > 1)) {
       this.setState(state => {
-        if (!state.action) {
-          const newState = Object.assign(state, { action });
-          newState.action.args.push([newState.action.args.pop()]);
-          return newState;
-        }
-        const lastArg = state.action.args[state.action.args.length - 1];
+        let newAction = state.action || this.blank(action);
+        const lastArg = newAction.args.slice(-1)[0];
         const index = lastArg.indexOf(this.choice(action));
         if (index > -1) {
           lastArg.splice(index, 1);
-          if (lastArg.length === 0) {
-            return Object.assign(state, { action: undefined });
-          }
+          if (lastArg.length === 0) newAction.args.pop();
+          if (newAction.args.length === 0) newAction = undefined;
         } else {
           lastArg.push(this.choice(action));
         }
-        return state;
+        return Object.assign(state, { action: newAction });
       });
     } else {
       this.submit(action);
     }
+  }
+
+  blank(action) {
+    return Object.assign({}, action, { args: action.args.slice(0, -1).concat([[]]) });
   }
 
   checkMulti(action, fn) {
@@ -50,15 +49,27 @@ export default class Page extends Component {
     return fn(answers, num, max);
   }
 
-  submissions() {
+  submittable() {
+    return [this.state.action].concat(this.actions().map(a => this.blank(a))).find((action) =>
+      this.checkMulti(action, (answers, num, max) => answers >= num && answers <= max)
+    );
+  }
+
+  // non game element choices
+  selections() {
+    let selections = this.actions().filter(a => !a.args || !a.args.length || this.choice(a).match(/^literal\(/));
     if (this.state.action) {
-      return this.checkMulti(this.state.action, (answers, num, max) => answers >= num && answers <= max) ? [''] : [];
+      selections = selections.filter(a => this.choice(this.state.action).indexOf(this.choice(a)) === -1);
     }
-    return this.actions().filter(a => !a.args || !a.args.length || this.choice(a).match(/^literal\(/));
+    return selections;
   }
 
   submit(action) {
     this.props.dispatch(action || this.state.action);
+    this.cancel();
+  }
+
+  cancel() {
     this.setState({ action: null });
   }
 
@@ -101,10 +112,14 @@ export default class Page extends Component {
         <div>Player {this.props.player}</div>
         <div>Winner {this.props.victory}</div>
         <div>
-          {this.submissions().map(action =>
-            <input key={this.description(action)} type="button" onClick={() => this.submit(action)} value={action ? this.description(action) : 'Done'} />
+          {this.selections().map(action =>
+            <input key={this.description(action)} type="button" onClick={() => this.select(action)} value={this.description(action)} />
           )}
         </div>
+        {this.submittable() && <div>
+          <input type="button" onClick={() => this.submit(this.submittable())} value="Done" />
+          <input type="button" onClick={() => this.cancel()} value="Cancel" />
+        </div>}
         <div style={{ border: '1px solid #666', padding: '6px', background: '#ccc' }}>
           <div>
             {this.actions().map(action =>

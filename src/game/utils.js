@@ -7,7 +7,7 @@ export function fromJSOrdered(js) {
          Immutable.Seq(js).map(fromJSOrdered).toOrderedMap();
 }
 
-export const times = n => Array.from(Array(n)).map((_, i) => i + 1);
+export const times = n => Array.from(Array(n)).map((_, i) => i);
 
 export function serialize(value) {
   if (value && value.serialize) {
