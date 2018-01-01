@@ -49,11 +49,12 @@ export default class Page extends Component {
     return fn(answers, num, max);
   }
 
-  submittable() {
-    return [this.state.action].concat(this.actions().map(a => this.blank(a))).find((action) =>
+  submittable = () =>
+    [this.state.action].concat(
+      this.props.questions.filter(q => q && q.choice).map(({ action, choice }) => this.blank({ type: action.type, args: action.args, multi: choice.multi }))
+    ).find((action) =>
       this.checkMulti(action, (answers, num, max) => answers >= num && answers <= max)
     );
-  }
 
   // non game element choices
   selections() {
@@ -118,7 +119,7 @@ export default class Page extends Component {
         </div>
         {this.submittable() && <div>
           <input type="button" onClick={() => this.submit(this.submittable())} value="Done" />
-          <input type="button" onClick={() => this.cancel()} value="Cancel" />
+          {this.state.action && <input type="button" onClick={() => this.cancel()} value="Cancel" />}
         </div>}
         <div style={{ border: '1px solid #666', padding: '6px', background: '#ccc' }}>
           <div>

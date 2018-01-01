@@ -6,7 +6,7 @@ const suits = ['S', 'C', 'D', 'H'];
 const numbers = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
 const doubles = [[null, false, false, false], [false, null, false, false], [false, false, null, false], [false, false, false, null]];
 
-export default class Domino extends Game {
+export default class Barbu extends Game {
   setup() {
     this.page = IndexPage;
     this.numPlayers = 4;
@@ -41,6 +41,10 @@ export default class Domino extends Game {
     return 'hand:not(.mine) card, tricks card';
   }
 
+  victory() {
+    return this.get('round') === 29 && this.get('score').indexOf(Math.max(...this.get('score')));
+  }
+
   moves = {
     declare: (game, pick) =>
       this.choose(
@@ -50,16 +54,19 @@ export default class Domino extends Game {
         ),
         () => {
           this.set('game', game);
-          this.updateIn(['declared', this.player], d => d.concat(game));
           switch (game) {
             case 'dominos':
-              return this.choose(pick, numbers, () => this.set('starting', pick)) && this.endTurn();
+              return this.choose(pick, numbers, () => {
+                this.set('starting', pick);
+                return this.endTurn();
+              });
             case 'trumps':
-              return this.choose(pick, suits, () => this.set('trump', pick)) && this.endTurn();
+              return this.choose(pick, suits, () => this.set('trump', pick) && this.endTurn());
             default:
               return this.endTurn();
           }
-        }),
+        }
+      ),
 
     play: card => {
       let plays = [];
@@ -162,7 +169,7 @@ export default class Domino extends Game {
       this.delete('led');
     }
 
-    if (this.board.count('tricks card') === 52 || this.get('game') === 'barbu' && this.board.find('tricks #KH')) { // score the deal
+    if (this.get('game') && (!this.board.count('hand card') || this.get('game') === 'barbu' && this.board.find('tricks #KH'))) { // score the deal
       const score = [0, 0, 0, 0];
       switch (this.get('game')) {
         case 'no hearts':
@@ -214,10 +221,14 @@ export default class Domino extends Game {
     }
     if (this.get('doubling')) {
       if (this.player === this.get('dealer')) {
+        this.updateIn(['declared', this.player], d => d.concat(this.get('game')));
         this.set('doubling', false);
       }
       return ['double'];
+    } else if (this.board.count('hand card') === 52) {
+      this.player = this.get('dealer');
     }
+
     while (this.board.empty('hand.mine')) this.endTurn();
     return [this.get('game') === 'dominos' ? 'playDomino' : 'play'];
   }

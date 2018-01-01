@@ -1,5 +1,4 @@
 // TODOS
-// highest/lowest
 // game id routing
 // adjacency
 // syncing xml2json2xml
@@ -36,8 +35,8 @@ export default class Game {
   }
   set = (key, value) => (this.state = this.state.set(key, fromJSOrdered(value))) && true
   setIn = (keyPath, value) => (this.state = this.state.setIn(keyPath, fromJSOrdered(value))) && true
-  update = (...args) => (this.state = this.state.update.apply(this.state, args)) && true
-  updateIn = (...args) => (this.state = this.state.updateIn.apply(this.state, args)) && true
+  update = (...args) => (this.state = this.state.update(...args)) && true
+  updateIn = (...args) => (this.state = this.state.updateIn(...args)) && true
   delete = key => (this.state = this.state.delete(key)) && true
 
   initialState() {
@@ -94,7 +93,7 @@ export default class Game {
   // action -> result
   _performMove(action) {
     if (!this.moves[action.type]) return false;
-    const result = this.moves[action.type].apply(this, action.args.map(c =>
+    const result = this.moves[action.type](...action.args.map(c =>
       deserialize(c, { GameElement: GameElement.deserialize.bind(this, this.doc) })
     ));
     if (typeof result !== 'boolean' && (typeof result !== 'object' || result.answers === undefined || result.multi === undefined)) {
@@ -107,12 +106,13 @@ export default class Game {
   _questions() {
     const actions = this.nextAction().map(type => ({ type, args: [] }));
     return actions.map(action => {
-      this._doc = this.doc;
-      this.doc = this.doc.clone();
+      this._doc = this.doc.clone();
       this._state = this.state;
       this._player = this.player;
       const result = this._performMove(action);
       this.doc = this._doc;
+      this.board = this.doc.board();
+      this.pile = this.doc.pile();
       this.state = this._state;
       this.player = this._player;
       if (result === false) return null;

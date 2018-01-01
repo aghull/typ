@@ -23,13 +23,13 @@ export default class TicTacToe extends Game {
       if (this.board.spaces(row).filter(s => s.contains('#X')).length === 3) return 0;
       if (this.board.spaces(row).filter(s => s.contains('#O')).length === 3) return 1;
       return false;
-    }).find(r => r);
+    }).find(r => r !== false);
   }
 
   moves = {
     tick: cell =>
       this.choose(cell, this.board.spaces('square:empty'), () => {
-        cell.add(this.player === 1 ? '#X' : '#O');
+        cell.add(this.player === 0 ? '#X' : '#O');
         return this.endTurn();
       }),
     reset: () => this.board.clear() && true

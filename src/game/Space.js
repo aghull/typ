@@ -82,7 +82,7 @@ export default class Space extends GameElement {
 
   shuffle() {
     times(this.node.childElementCount - 1).forEach(i =>
-      this.node.insertBefore(this.node.children[Math.floor(Math.random() * (this.node.childElementCount + 1 - i))], null)
+      this.node.insertBefore(this.node.children[Math.floor(Math.random() * (this.node.childElementCount - i))], null)
     );
   }
 

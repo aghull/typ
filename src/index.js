@@ -7,7 +7,7 @@ import thunk from 'redux-thunk';
 import DevTools from './lib/devTools';
 const enhancer = __DEVELOPMENT__ ? compose(applyMiddleware(thunk), DevTools.instrument()) : compose(applyMiddleware(thunk));
 
-import Game from './games/domino';
+import Game from './games/barbu';
 const game = window.game = new Game();
 game.start();
 
