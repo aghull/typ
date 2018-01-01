@@ -64,8 +64,9 @@ export default class Game {
 
   _store = () => ({
     questions: this._questions(),
-    board: this._playerView(),
+    players: this.players,
     player: this.player,
+    board: this._playerView(),
     state: this.state.toJS(),
     victory: this.victory(),
   });

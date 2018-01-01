@@ -84,6 +84,16 @@ export default class Page extends Component {
 
   component(element) {} // eslint-disable-line no-unused-vars
 
+  scoreBoard() {
+    return (
+      <div>
+        <div>Player {this.props.player}</div>
+        <div>Winner {this.props.victory}</div>
+        <div>{JSON.stringify(this.props.state)}</div>
+      </div>
+    );
+  }
+
   renderGameElement(el) {
     const element = new GameElement(el); // pull out attr code?
     const choice = element.serialize();
@@ -110,8 +120,7 @@ export default class Page extends Component {
         <div>
           {this.renderGameElement(this.props.board)}
         </div>
-        <div>Player {this.props.player}</div>
-        <div>Winner {this.props.victory}</div>
+        {this.scoreBoard()}
         <div>
           {this.selections().map(action =>
             <input key={this.description(action)} type="button" onClick={() => this.select(action)} value={this.description(action)} />

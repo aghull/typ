@@ -57,11 +57,11 @@ export default class Barbu extends Game {
           switch (game) {
             case 'dominos':
               return this.choose(pick, numbers, () => {
-                this.set('starting', pick);
+                this.set('pick', pick);
                 return this.endTurn();
               });
             case 'trumps':
-              return this.choose(pick, suits, () => this.set('trump', pick) && this.endTurn());
+              return this.choose(pick, suits, () => this.set('pick', pick) && this.endTurn());
             default:
               return this.endTurn();
           }
@@ -75,12 +75,12 @@ export default class Barbu extends Game {
         plays = this.board.findAll(`hand.mine card[suit=${this.get('led')}]`);
 
         if (this.get('game') === 'trumps') {
-          const highestTrump = this.board.highest(`played card[suit=${this.get('trump')}]`, 'rank');
-          if (this.get('led') === this.get('trump') || highestTrump && !plays.length) {
-            plays = this.board.findAll(`hand.mine card[suit=${this.get('trump')}]`).
+          const highestTrump = this.board.highest(`played card[suit=${this.get('pick')}]`, 'rank');
+          if (this.get('led') === this.get('pick') || highestTrump && !plays.length) {
+            plays = this.board.findAll(`hand.mine card[suit=${this.get('pick')}]`).
                          filter(c => c.get('rank') >= highestTrump.get('rank'));
           } else if (!plays.length) {
-            plays = this.board.findAll(`hand.mine card[suit=${this.get('trump')}]`);
+            plays = this.board.findAll(`hand.mine card[suit=${this.get('pick')}]`);
           }
         } else {
           plays = this.board.findAll(`hand.mine card[suit=${this.get('led')}]`);
@@ -101,7 +101,7 @@ export default class Barbu extends Game {
     },
 
     playDomino: card => {
-      let plays = this.board.findAll(`hand.mine card[number=${this.get('starting')}]`);
+      let plays = this.board.findAll(`hand.mine card[number=${this.get('pick')}]`);
       const starting = this.board.find('starting card') ? this.board.find('starting card').get('rank') : undefined;
       if (starting) {
         plays = suits.reduce((p, suit) => {
@@ -160,10 +160,10 @@ export default class Barbu extends Game {
     const played = this.board.findAll('played card');
 
     if (played.length === 4) { // score the trick
-      const highestTrump = this.get('trump') && this.board.highest(`played card[suit=${this.get('trump')}]`, 'rank');
+      const highestTrump = this.get('game') === 'trumps' && this.board.highest(`played card[suit=${this.get('pick')}]`, 'rank');
       this.player = (highestTrump || this.board.highest(`played card[suit=${this.get('led')}]`, 'rank')).parent().player();
       this.board.move(played, 'tricks.mine');
-      if (this.get('game') === 'no last two' && this.count('tricks card') >= 44) {
+      if (this.get('game') === 'no last two' && this.board.count('tricks card') >= 44) {
         this.update('out', out => out.concat(this.player));
       }
       this.delete('led');
@@ -188,7 +188,7 @@ export default class Barbu extends Game {
           this.board.findAll('card:nth-child(4n)').forEach(card => (score[card.parent().player()] -= 2));
           break;
         case 'no last two':
-          [-10, -20].forEach((points, out) => (score[this.get('out')[out]] = points));
+          [10, 20].forEach((points, out) => (score[this.get('out')[out]] -= points));
           break;
         case 'dominos':
           [45, 20, 5, -5].forEach((points, out) => (score[this.get('out')[out]] = points));
@@ -203,7 +203,6 @@ export default class Barbu extends Game {
         }
       }));
       this.eachPlayer(player => this.updateIn(['score', player], p => p + score[player] + bonus[player]));
-      this.delete('trump');
       this.board.clear();
     }
 
@@ -214,6 +213,8 @@ export default class Barbu extends Game {
       this.sortCards();
       this.update('dealer', d => (this.player = (d + 1) % 4));
       this.update('round', r => r + 1);
+      this.delete('pick');
+      this.delete('game');
       this.set('out', []);
       this.set('doubles', doubles);
       this.set('doubling', true);
