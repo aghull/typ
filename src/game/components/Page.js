@@ -136,6 +136,7 @@ export default class Page extends Component {
               <input key={this.description(action)} type="button" onClick={() => this.select(action)} value={this.description(action)} />
              )}
           </div>
+          <input type="button" value="Undo" onClick={() => this.props.dispatch({ type: 'undo' })} />
           <div>State: <pre>{JSON.stringify(this.props.state)}</pre></div>
           <div>Action: <pre>{JSON.stringify(this.state.action)}</pre></div>
           <div>Board: <pre>{xmlFormat(this.props.board.outerHTML)}</pre></div>

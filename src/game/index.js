@@ -22,6 +22,7 @@ import GameDocument from './GameDocument.js';
 export default class Game {
   constructor() {
     this.state = fromJSOrdered(this.initialState());
+    this._previousState = [];
     this.doc = new GameDocument(null, this);
     this.board = this.doc.board();
     this.pile = this.doc.pile();
@@ -67,6 +68,7 @@ export default class Game {
     players: this.players,
     player: this.player,
     board: this._playerView(),
+    pile: this.doc.pileNode(),
     state: this.state.toJS(),
     victory: this.victory(),
   });
@@ -122,6 +124,18 @@ export default class Game {
   }
 
   reducer(state = this._store(), action) {
+    if (action.type === 'undo') {
+      const previousState = this._previousState.pop();
+      this.state = fromJSOrdered(previousState.state);
+      this.doc.node.replaceChild(previousState.board, this.doc.boardNode());
+      this.doc.node.replaceChild(previousState.pile, this.doc.pileNode());
+      this.board = this.doc.board();
+      this.pile = this.doc.pile();
+      return previousState;
+    }
+
+    this._previousState.push(Object.assign({}, state, { board: state.board.cloneNode(true) }));
+
     if (action && this.moves[action.type]) {
       const result = this._performMove(action);
       if (result === true) {

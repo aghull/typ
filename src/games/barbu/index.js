@@ -28,7 +28,6 @@ export default class Barbu extends Game {
   initialState() {
     return {
       dealer: -1,
-      doubling: false,
       round: 0,
       score: [0, 0, 0, 0],
       declared: [[], [], [], []],
@@ -217,17 +216,18 @@ export default class Barbu extends Game {
       this.delete('game');
       this.set('out', []);
       this.set('doubles', doubles);
-      this.set('doubling', true);
+      this.set('phase', 'doubling');
       return ['declare'];
     }
-    if (this.get('doubling')) {
+    if (this.get('phase') === 'doubling') {
       if (this.player === this.get('dealer')) {
         this.updateIn(['declared', this.player], d => d.concat(this.get('game')));
-        this.set('doubling', false);
+        this.set('phase', 'lead');
       }
       return ['double'];
-    } else if (this.board.count('hand card') === 52) {
+    } else if (this.get('phase') === 'lead') {
       this.player = this.get('dealer');
+      this.set('phase', 'play');
     }
 
     while (this.board.empty('hand.mine')) this.endTurn();
