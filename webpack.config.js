@@ -4,32 +4,23 @@ import HtmlWebpackPlugin from 'html-webpack-plugin';
 const development = {
   output: {
     path: require('path').join(__dirname + '/dist'),
-    filename: 'index.js',
+    filename: '[name].js',
     publicPath: '/'
   },
   debug: true,
   devtool: 'eval',
-  entry: [
-    'eventsource-polyfill',
-    'webpack-hot-middleware/client',
-    './src/index'
-  ],
+  entry: {
+    polyfill: 'eventsource-polyfill',
+    hot: 'webpack-hot-middleware/client',
+    server: './src/index',
+    client: './src/client',
+  },
   stats: {
     colors: true,
     reasons: true
   },
   resolve: {
     extensions: ['', '.js'],
-    alias: {
-      'actions': __dirname + '/src/actions/',
-      'components': __dirname + '/src/components/',
-      'constants': __dirname + '/src/constants/',
-      'pages': __dirname + '/src/pages/',
-      'reducers': __dirname + '/src/reducers/',
-      'styles': __dirname + '/src/styles',
-      'images': __dirname + '/src/public/images',
-      'lib': __dirname + '/src/lib'
-    }
   },
   module: {
     preLoaders: [{
@@ -67,8 +58,16 @@ const development = {
     }),
     new HtmlWebpackPlugin({
       template: 'src/index.html.tpl',
-      inject: 'body'
-    })
+      inject: 'body',
+      chunks: ['polyfill', 'hot', 'server'],
+      filename: 'server.html',
+    }),
+    new HtmlWebpackPlugin({
+      template: 'src/index.html.tpl',
+      inject: 'body',
+      chunks: ['polyfill', 'hot', 'client'],
+      filename: 'client.html',
+    }),
   ],
   postcss() {
     return [
@@ -98,16 +97,6 @@ const production = {
   },
   resolve: {
     extensions: ['', '.js'],
-    alias: {
-      'actions': __dirname + '/src/actions/',
-      'components': __dirname + '/src/components/',
-      'constants': __dirname + '/src/constants/',
-      'pages': __dirname + '/src/pages/',
-      'reducers': __dirname + '/src/reducers/',
-      'styles': __dirname + '/src/styles',
-      'images': __dirname + '/src/public/images',
-      'lib': __dirname + '/src/lib'
-    }
   },
   module: {
     loaders: [{

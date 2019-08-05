@@ -1,0 +1,28 @@
+DB
+  Game
+  - id
+  - type
+  - state
+  - players
+  - history
+  Player
+
+GameServer
+  access DB
+  register player
+  instantiate interface
+  establish socket
+  start game
+  manage history
+
+Game -> TicTacToe
+  init(player)
+  setState(state) => bool:changed?
+  getPlayerState() => playerState
+  receiveAction(action) => state
+
+Client
+  _questions()
+  use react, redux
+  publish actions
+  receive playerState

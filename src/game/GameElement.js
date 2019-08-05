@@ -1,4 +1,4 @@
-const gameElements = [];
+const gameElements = []; // singleton breaks ability to use tempengines?
 
 export default class GameElement {
   constructor(node, caller = {}) {

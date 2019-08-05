@@ -1,12 +1,10 @@
 import Game from '../../game';
-import IndexPage from './Page';
 
 export default class TicTacToe extends Game {
   setup() {
     this.numPlayers = 2;
     ['#TL', '#TC', '#TR', '#ML', '#MC', '#MR', '#BL', '#BC', '#BR'].forEach(s => this.board.addSpace(s, 'square', { row: 1 }));
     ['#X', '#O'].forEach(p => this.board.addPieces(9, p, 'mark'));
-    this.page = IndexPage;
   }
 
   victory() {

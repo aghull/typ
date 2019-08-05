@@ -20,27 +20,93 @@ import GameElement from './GameElement.js';
 import GameDocument from './GameDocument.js';
 
 export default class Game {
-  constructor() {
-    this.state = fromJSOrdered(this.initialState());
-    this._previousState = [];
+  constructor(player, postAction) {
     this.doc = new GameDocument(null, this);
+    this.player = player;
+    this.postAction = postAction;
+  }
+
+  start() {
+    this.setState({ meta: this.initialMeta() });
+    this.setup();
+    return this.getState();
+  }
+
+  endTurn() {
+    this.player = (this.player + 1) % this.numPlayers;
+    // call server endTurn
+    return true;
+  }
+
+  setState(state) {
+    this.meta = fromJSOrdered(state.meta) || {};
+    if (state.board) {
+      this.doc.node.replaceChild(state.board.cloneNode(true), this.doc.boardNode());
+    }
+    if (state.pile) {
+      this.doc.node.replaceChild(state.pile.cloneNode(true), this.doc.pileNode());
+    }
     this.board = this.doc.board();
     this.pile = this.doc.pile();
-    this.setup();
   }
 
-  state = () => this.state.toJS()
-  get = key => {
-    const value = this.state.get(key);
+  getPlayerState = () => Object.assign({}, this.getState(), { board: this.playerView() });
+
+  getState = () => ({
+    board: this.doc.boardNode(),
+    pile: this.doc.pileNode(),
+    meta: this.meta.toJS(),
+  });
+
+  serializedState() {
+    const state = this.getState();
+    state.board = state.board.outerHTML;
+    state.pile = state.pile.outerHTML;
+    return state;
+  }
+
+  deserializedState(state) {
+    return {
+      meta: state.meta,
+      board: new DOMParser().parseFromString(state.board, 'text/html').body.children[0],
+      pile: new DOMParser().parseFromString(state.pile, 'text/html').body.children[0],
+    };
+  }
+
+  receiveAction(action) {
+    if (action && this.moves[action.type]) {
+      const result = this._performMove(action);
+      if (result === true) {
+        return this.getState();
+      }
+    }
+    let _debugOutput = '';
+    switch (action.type) {
+      case 'debug':
+        try {
+          _debugOutput = eval(`this.board().${action.expr}`); // eslint-disable-line no-eval
+        } catch (e) {
+          _debugOutput = e;
+        }
+        return Object.assign(this.getState(), { _debugOutput });
+      default:
+    }
+    return this.getState();
+  }
+
+  get(key) {
+    const value = this.meta.get(key);
     return value && value.toJS ? value.toJS() : value;
   }
-  set = (key, value) => (this.state = this.state.set(key, fromJSOrdered(value))) && true
-  setIn = (keyPath, value) => (this.state = this.state.setIn(keyPath, fromJSOrdered(value))) && true
-  update = (...args) => (this.state = this.state.update(...args)) && true
-  updateIn = (...args) => (this.state = this.state.updateIn(...args)) && true
-  delete = key => (this.state = this.state.delete(key)) && true
+  set = (key, value) => (this.meta = this.meta.set(key, fromJSOrdered(value))) && true
+  setIn = (keyPath, value) => (this.meta = this.meta.setIn(keyPath, fromJSOrdered(value))) && true
+  update = (...args) => (this.meta = this.meta.update(...args)) && true
+  updateIn = (...args) => (this.meta = this.meta.updateIn(...args)) && true
+  delete = key => (this.meta = this.meta.delete(key)) && true
+  eachPlayer = fn => times(this.numPlayers).forEach(fn)
+  me = () => this.players[this.player];
 
-  initialState() {
+  initialMeta() {
     return {};
   }
 
@@ -50,30 +116,7 @@ export default class Game {
 
   hidden() { return null; }
 
-  start() {
-    this.player = 0;
-    this.players = times(this.numPlayers).map(p => `Player ${p + 1}`);
-  }
-
-  endTurn() {
-    this.player = (this.player + 1) % this.numPlayers;
-    return true;
-  }
-
-  eachPlayer = fn => times(this.numPlayers).forEach(fn)
-  me = () => this.players[this.player];
-
-  _store = () => ({
-    questions: this._questions(),
-    players: this.players,
-    player: this.player,
-    board: this._playerView(),
-    pile: this.doc.pileNode(),
-    state: this.state.toJS(),
-    victory: this.victory(),
-  });
-
-  _playerView() {
+  playerView() {
     const playerView = this.doc.clone();
     playerView.findNodes(this.hidden()).forEach(n => n.replaceWith(document.createElement(n.nodeName)));
     return playerView.boardNode();
@@ -103,60 +146,5 @@ export default class Game {
       throw Error(`"${action.type}" returned invalid result "${result}"`);
     }
     return result;
-  }
-
-  // compile questions from all available actions
-  _questions() {
-    const actions = this.nextAction().map(type => ({ type, args: [] }));
-    return actions.map(action => {
-      this._doc = this.doc.clone();
-      this._state = this.state;
-      this._player = this.player;
-      const result = this._performMove(action);
-      this.doc = this._doc;
-      this.board = this.doc.board();
-      this.pile = this.doc.pile();
-      this.state = this._state;
-      this.player = this._player;
-      if (result === false) return null;
-      return result === true ? { action } : { action, choice: result };
-    });
-  }
-
-  reducer(state = this._store(), action) {
-    if (action.type === 'undo') {
-      const previousState = this._previousState.pop();
-      this.state = fromJSOrdered(previousState.state);
-      this.doc.node.replaceChild(previousState.board, this.doc.boardNode());
-      this.doc.node.replaceChild(previousState.pile, this.doc.pileNode());
-      this.board = this.doc.board();
-      this.pile = this.doc.pile();
-      return previousState;
-    }
-
-    this._previousState.push(Object.assign({}, state, { board: state.board.cloneNode(true) }));
-
-    if (action && this.moves[action.type]) {
-      const result = this._performMove(action);
-      if (result === true) {
-        return this._store();
-      }
-      // return next question for this action
-      if (result !== false) {
-        return Object.assign({}, state, { questions: [{ action, choice: result }] });
-      }
-    }
-    let _debugOutput = '';
-    switch (action.type) {
-      case 'debug':
-        try {
-          _debugOutput = eval(`this.board().${action.expr}`); // eslint-disable-line no-eval
-        } catch (e) {
-          _debugOutput = e;
-        }
-        return Object.assign(this._store(), { _debugOutput });
-      default:
-    }
-    return state;
   }
 }

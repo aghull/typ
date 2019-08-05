@@ -66,7 +66,7 @@ export default class Page extends Component {
   }
 
   submit(action) {
-    this.props.dispatch(action || this.state.action);
+    this.props.postAction(action || this.state.action);
     this.cancel();
   }
 
@@ -89,7 +89,7 @@ export default class Page extends Component {
       <div>
         <div>Player {this.props.player}</div>
         <div>Winner {this.props.victory}</div>
-        <div>{JSON.stringify(this.props.state)}</div>
+        <div>{JSON.stringify(this.props.meta)}</div>
       </div>
     );
   }
@@ -115,6 +115,15 @@ export default class Page extends Component {
   }
 
   render() {
+    if (!this.props.board) {
+      return (
+        <div>
+          <div>Waiting...</div>
+          <input type="button" value="Join" onClick={() => this.props.join()} />
+        </div>
+      );
+    }
+
     return (
       <div>
         <div>
