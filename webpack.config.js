@@ -147,7 +147,9 @@ const server = {
   output: {
     path: require('path').join(__dirname + '/dist'),
     filename: 'server.js',
-    publicPath: '/'
+    publicPath: '/',
+    library: 'TicTacToe',
+    libraryTarget: 'var',
   },
   entry: './src/games/tictactoe/index',
   target: 'node',
