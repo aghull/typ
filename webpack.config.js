@@ -84,13 +84,14 @@ const development = {
 const production = {
   output: {
     path: require('path').join(__dirname + '/dist'),
-    filename: 'index-[hash].js',
+    filename: '[name].js',
     publicPath: '/'
   },
   devtool: 'sourcemap',
-  entry: [
-    './src/index'
-  ],
+  entry: {
+    server: './src/games/tictactoe/index',
+    client: './src/games/tictactoe/Page',
+  },
   stats: {
     colors: true,
     reasons: true
