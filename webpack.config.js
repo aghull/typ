@@ -81,17 +81,14 @@ const development = {
   }
 };
 
-const production = {
+const client = {
   output: {
     path: require('path').join(__dirname + '/dist'),
-    filename: '[name].js',
+    filename: 'client.js',
     publicPath: '/'
   },
   devtool: 'sourcemap',
-  entry: {
-    server: './src/games/tictactoe/index',
-    client: './src/games/tictactoe/Page',
-  },
+  entry: './src/games/tictactoe/Page',
   stats: {
     colors: true,
     reasons: true
@@ -146,4 +143,36 @@ const production = {
   }
 };
 
-module.exports = { development, production };
+const server = {
+  output: {
+    path: require('path').join(__dirname + '/dist'),
+    filename: 'server.js',
+    publicPath: '/'
+  },
+  entry: './src/games/tictactoe/index',
+  target: 'node',
+  stats: {
+    colors: true,
+    reasons: true
+  },
+  resolve: {
+    extensions: ['', '.js'],
+  },
+  module: {
+    loaders: [{
+      test: /\.js$/,
+      exclude: /node_modules/,
+      loader: 'babel'
+    }]
+  },
+  plugins: [
+    new webpack.optimize.DedupePlugin(),
+    new webpack.optimize.OccurenceOrderPlugin(),
+    new webpack.NoErrorsPlugin(),
+    new webpack.DefinePlugin({
+      __DEVELOPMENT__: false
+    }),
+  ],
+};
+
+module.exports = { development, client, server };

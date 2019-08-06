@@ -1,11 +1,19 @@
 require('babel-register');
 
-var webpack = require('webpack');
-var config = require('../webpack.config.js').production;
+const webpack = require('webpack');
+const config = require('../webpack.config.js').server;
+const bundler = webpack(config);
+const config2 = require('../webpack.config.js').client;
+const bundler2 = webpack(config2);
 
-var bundler = webpack(config);
+bundler.run((err, stats) => {
+  if (err) {
+    console.error(err);
+  }
+  console.log(stats.toString());
+});
 
-bundler.run(function(err, stats) {
+bundler2.run((err, stats) => {
   if (err) {
     console.error(err);
   }
