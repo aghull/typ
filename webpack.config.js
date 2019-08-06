@@ -88,7 +88,7 @@ const client = {
     publicPath: '/'
   },
   devtool: 'sourcemap',
-  entry: './src/games/tictactoe/Page',
+  entry: './src/game/client.js',
   stats: {
     colors: true,
     reasons: true
@@ -149,9 +149,9 @@ const server = {
     filename: 'server.js',
     publicPath: '/',
     library: 'TicTacToe',
-    libraryTarget: 'var',
+    libraryTarget: 'commonjs2',
   },
-  entry: './src/games/tictactoe/index',
+  entry: './src/game/tttserver.js',
   target: 'node',
   stats: {
     colors: true,
@@ -173,7 +173,7 @@ const server = {
     new webpack.NoErrorsPlugin(),
     new webpack.DefinePlugin({
       __DEVELOPMENT__: false
-    }),
+    })
   ],
 };
 
