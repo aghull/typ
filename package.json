@@ -15,8 +15,8 @@
     "classnames": "^2.2.6",
     "css-loader": "^3.2.0",
     "immutable": "^4.0.0-rc.12",
-    "jsdom": "^15.1.1",
     "node-sass": "^4.12.0",
+    "query-selector": "^1.0.9",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-redux": "^7.1.0",
@@ -27,10 +27,10 @@
     "redux-thunk": "^2.3.0",
     "sass-loader": "^7.1.0",
     "style-loader": "^1.0.0",
-    "undom": "^0.4.0",
     "utf-8-validate": "^5.0.2",
     "webpack": "^4.39.1",
-    "xml-formatter": "^1.1.0"
+    "xml-formatter": "^1.1.0",
+    "xmldom": "^0.1.27"
   },
   "devDependencies": {
     "node-loader": "^0.6.0",
