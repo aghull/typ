@@ -27,6 +27,7 @@
     "redux-thunk": "^2.3.0",
     "sass-loader": "^7.1.0",
     "style-loader": "^1.0.0",
+    "undom": "^0.4.0",
     "utf-8-validate": "^5.0.2",
     "webpack": "^4.39.1",
     "xml-formatter": "^1.1.0"
