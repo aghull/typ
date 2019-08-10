@@ -5,12 +5,12 @@ export default class GameElement {
     this.node = node;
     this.doc = caller.doc;
     this.game = caller.game;
-    this.id = node.id;
+    this.id = node.getAttribute('id');
     this.type = node.nodeName.toLowerCase();
   }
 
   wrap(node) {
-    if (!(node instanceof Node)) return null;
+    if (!node || !node.nodeName) return null;
     const element = gameElements.find(el => el && el.test(node));
     if (!element) throw Error(`No wrapper for node ${node.nodeName}`);
     return new element.className(node, this);
@@ -51,7 +51,7 @@ export default class GameElement {
   }
 
   boardNode() {
-    return this.doc.children[0];
+    return this.doc.childNodes[0];
   }
 
   board() {
@@ -59,7 +59,7 @@ export default class GameElement {
   }
 
   pileNode() {
-    return this.doc.children[1];
+    return this.doc.childNodes[1];
   }
 
   pile() {
@@ -71,11 +71,11 @@ export default class GameElement {
   }
 
   static isSpaceNode(node) {
-    return node && node.className === 'space';
+    return node && node.getAttribute('class') === 'space';
   }
 
   static isPieceNode(node) {
-    return node && node.className === 'piece';
+    return node && node.getAttribute('class') === 'piece';
   }
 
   serialize() {

@@ -60,16 +60,16 @@ export default class Game {
 
   serializedState() {
     const state = this.getState();
-    state.board = state.board.outerHTML;
-    state.pile = state.pile.outerHTML;
+    state.board = new XMLSerializer().serializeToString(state.board);
+    state.pile = new XMLSerializer().serializeToString(state.pile);
     return state;
   }
 
   deserializedState(state) {
     return {
       meta: state.meta,
-      board: new DOMParser().parseFromString(state.board, 'text/html').body.children[0],
-      pile: new DOMParser().parseFromString(state.pile, 'text/html').body.children[0],
+      board: new DOMParser().parseFromString(state.board, 'text/xml'),
+      pile: new DOMParser().parseFromString(state.pile, 'text/xml'),
     };
   }
 

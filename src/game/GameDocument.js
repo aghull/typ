@@ -8,9 +8,9 @@ export default class GameDocument extends Space {
       rootNode = document.createElement('game');
       const board = document.createElement('board');
       const pile = document.createElement('pile');
-      board.className = 'space';
-      board.id = 'board';
-      pile.className = 'space';
+      board.setAttribute('class', 'space');
+      board.setAttribute('id', 'board');
+      pile.setAttribute('class', 'space');
       rootNode.appendChild(board);
       rootNode.appendChild(pile);
     }

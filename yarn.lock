@@ -4398,11 +4398,6 @@ scss-tokenizer@^0.2.3:
     js-base64 "^2.1.8"
     source-map "^0.4.2"
 
-select-dom@^5.1.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/select-dom/-/select-dom-5.1.0.tgz#b786155e891ce2c797d42b9c8643c8ad3a2247b5"
-  integrity sha512-roC9kDCsz/xxio7LJtr7VGiJ163MBcl9emB0jIXdvahdUdvTO2wD91diHxUR9EjrG7XSyXOyH+QaqgPLGZOiFg==
-
 "semver@2 || 3 || 4 || 5", semver@^5.3.0, semver@^5.4.1, semver@^5.5.0, semver@^5.6.0:
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.0.tgz#790a7cf6fea5459bac96110b29b60412dc8ff96b"
