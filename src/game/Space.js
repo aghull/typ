@@ -8,18 +8,18 @@ export default class Space extends GameElement {
 
   findNode(q = '*') {
     if (q === null) return null;
-    if (q instanceof Node) return q;
+    if (q.nodeName) return q;
     return (this.boardNode() === this.node ? this.doc : this.node).querySelector(this._enhanceQuery(q));
   }
 
   findNodes(q = '*') {
     if (q === null) return [];
-    if (q instanceof NodeList) return q;
+    if (q.entries) return q;
     return (this.boardNode() === this.node ? this.doc : this.node).querySelectorAll(this._enhanceQuery(q));
   }
 
   empty(q) {
-    return !this.find(q) || this.find(q).node.children.length === 0;
+    return !this.find(q) || this.find(q).node.childNodes.length === 0;
   }
 
   count(q) {
@@ -42,7 +42,7 @@ export default class Space extends GameElement {
   }
 
   space(q) {
-    if (q instanceof Node) return this.wrap(q);
+    if (q && q.nodeName) return this.wrap(q);
     if (q instanceof Space) return q;
     return this.spaces(q)[0];
   }
@@ -53,7 +53,7 @@ export default class Space extends GameElement {
   }
 
   piece(q) {
-    if (q instanceof Node) return this.wrap(q);
+    if (q && q.nodeName) return this.wrap(q);
     if (q instanceof Piece) return q;
     return this.pieces(q)[0];
   }
@@ -82,7 +82,7 @@ export default class Space extends GameElement {
 
   shuffle() {
     times(this.node.childElementCount - 1).forEach(i =>
-      this.node.insertBefore(this.node.children[Math.floor(Math.random() * (this.node.childElementCount - i))], null)
+      this.node.insertBefore(this.node.childNodes[Math.floor(Math.random() * (this.node.childElementCount - i))], null)
     );
   }
 
@@ -96,7 +96,7 @@ export default class Space extends GameElement {
   }
 
   sort(fn) {
-    this._sort(Array.from(this.node.children).map(node => this.wrap(node)), fn).
+    this._sort(Array.from(this.node.childNodes).map(node => this.wrap(node)), fn).
          map(pair => pair.node).
          forEach(i => this.node.insertBefore(i, null));
   }
@@ -122,8 +122,8 @@ export default class Space extends GameElement {
   addGameElement(name, type, className, attrs = {}) {
     const el = document.createElement(type);
     if (name[0] !== '#') throw Error(`id ${name} must start with #`);
-    el.id = name.slice(1);
-    el.className = className;
+    el.setAttribute('id', name.slice(1));
+    el.setAttribute('class', className);
     Object.keys(attrs).forEach(attr => el.setAttribute(attr, attrs[attr]));
     this.node.appendChild(el);
   }

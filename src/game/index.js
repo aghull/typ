@@ -58,18 +58,19 @@ export default class Game {
     meta: this.meta.toJS(),
   });
 
-  serializedState() {
-    const state = this.getState();
-    state.board = state.board.outerHTML;
-    state.pile = state.pile.outerHTML;
-    return state;
+  serializedState(state) {
+    return {
+      meta: state.meta,
+      board: new XMLSerializer().serializeToString(state.board),
+      pile: new XMLSerializer().serializeToString(state.pile),
+    };
   }
 
   deserializedState(state) {
     return {
       meta: state.meta,
-      board: new DOMParser().parseFromString(state.board, 'text/html').body.children[0],
-      pile: new DOMParser().parseFromString(state.pile, 'text/html').body.children[0],
+      board: new DOMParser().parseFromString(state.board, 'text/xml').childNodes[0],
+      pile: new DOMParser().parseFromString(state.pile, 'text/xml').childNodes[0],
     };
   }
 
