@@ -26,7 +26,7 @@ export default class GameServer {
   }
 
   updateClients() {
-    const body = this.engine.serializedState();
+    const body = this.engine.serializedState(this.engine.getStart());
     body.player = this.engine.player;
     this.channel.postMessage({ type: 'state', body });
   }
